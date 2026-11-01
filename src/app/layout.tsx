@@ -30,7 +30,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="antialiased min-h-screen selection:bg-purple-600 selection:text-white transition-colors duration-200">
+      <body className="antialiased min-h-screen selection:bg-purple-600 selection:text-white transition-colors duration-200" suppressHydrationWarning>
         {children}
       </body>
     </html>

@@ -31,7 +31,14 @@ export const ThemeToggle: React.FC = () => {
     }
   };
 
-  if (!mounted) return null;
+  if (!mounted) {
+    return (
+      <div
+        className="w-9 h-9 sm:w-28 h-9 rounded-xl border border-transparent"
+        aria-hidden="true"
+      />
+    );
+  }
 
   return (
     <button
