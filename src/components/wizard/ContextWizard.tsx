@@ -3,7 +3,7 @@
 import React from 'react';
 import { EventContext, PriorityCategory } from '@/types/planner';
 import { CATEGORY_LABELS } from '@/engine/plannerConstants';
-import { IndianRupee, Users, Calendar, HeartHandshake, CheckCircle2 } from 'lucide-react';
+import { IndianRupee, Users, Calendar, HeartHandshake } from 'lucide-react';
 
 interface ContextWizardProps {
   context: EventContext;
@@ -26,10 +26,7 @@ export const ContextWizard: React.FC<ContextWizardProps> = ({
 
   const handlePrioritySelect = (cat: PriorityCategory) => {
     const without = context.priorities.filter((p) => p !== cat);
-    onUpdateContext({
-      ...context,
-      priorities: [cat, ...without],
-    });
+    onUpdateContext({ ...context, priorities: [cat, ...without] });
   };
 
   const commonAccessibility = [
@@ -49,28 +46,24 @@ export const ContextWizard: React.FC<ContextWizardProps> = ({
   };
 
   return (
-    <section
-      aria-labelledby="wizard-heading"
-      className="bg-white rounded-2xl border border-amber-200/70 p-6 shadow-sm"
-    >
-      <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+    <section aria-labelledby="wizard-heading" className="glass-panel rounded-2xl p-6 shadow-2xl border border-white/10 text-white">
+      <div className="flex items-center justify-between pb-4 border-b border-white/10">
         <div>
-          <h2 id="wizard-heading" className="text-lg font-bold text-slate-900">
+          <h2 id="wizard-heading" className="text-base font-bold text-white">
             Event Context & Priority Setup
           </h2>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-slate-400">
             UtsavAI weights every calculation by your specific top priorities and guest demographics.
           </p>
         </div>
-        <span className="text-xs font-semibold px-2.5 py-1 bg-amber-100 text-amber-900 rounded-md uppercase">
+        <span className="text-xs font-bold px-2.5 py-1 bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-md uppercase">
           {context.eventType}
         </span>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-        {/* Total Budget */}
         <div>
-          <label htmlFor="total-budget-input" className="block text-xs font-semibold text-slate-700 mb-1">
+          <label htmlFor="total-budget-input" className="block text-xs font-semibold text-slate-300 mb-1">
             Total Budget (₹)
           </label>
           <div className="relative">
@@ -78,24 +71,17 @@ export const ContextWizard: React.FC<ContextWizardProps> = ({
             <input
               id="total-budget-input"
               type="number"
-              aria-label="Total Event Budget in Rupees"
               min={10000}
               step={5000}
               value={context.totalBudget}
-              onChange={(e) =>
-                onUpdateContext({
-                  ...context,
-                  totalBudget: Math.max(10000, Number(e.target.value) || 0),
-                })
-              }
-              className="w-full pl-9 pr-3 py-2 border border-slate-300 rounded-lg text-sm font-semibold focus:ring-2 focus:ring-amber-500"
+              onChange={(e) => onUpdateContext({ ...context, totalBudget: Math.max(10000, Number(e.target.value) || 0) })}
+              className="w-full pl-9 pr-3 py-2 bg-black/50 border border-white/15 rounded-xl text-sm font-bold text-white focus:ring-2 focus:ring-amber-500"
             />
           </div>
         </div>
 
-        {/* Guest Count */}
         <div>
-          <label htmlFor="guest-count-input" className="block text-xs font-semibold text-slate-700 mb-1">
+          <label htmlFor="guest-count-input" className="block text-xs font-semibold text-slate-300 mb-1">
             Guest Count (Pax)
           </label>
           <div className="relative">
@@ -103,24 +89,17 @@ export const ContextWizard: React.FC<ContextWizardProps> = ({
             <input
               id="guest-count-input"
               type="number"
-              aria-label="Expected Guest Count"
               min={10}
               max={5000}
               value={context.guestCount}
-              onChange={(e) =>
-                onUpdateContext({
-                  ...context,
-                  guestCount: Math.max(10, Number(e.target.value) || 0),
-                })
-              }
-              className="w-full pl-9 pr-3 py-2 border border-slate-300 rounded-lg text-sm font-semibold focus:ring-2 focus:ring-amber-500"
+              onChange={(e) => onUpdateContext({ ...context, guestCount: Math.max(10, Number(e.target.value) || 0) })}
+              className="w-full pl-9 pr-3 py-2 bg-black/50 border border-white/15 rounded-xl text-sm font-bold text-white focus:ring-2 focus:ring-amber-500"
             />
           </div>
         </div>
 
-        {/* Event Date */}
         <div>
-          <label htmlFor="event-date-input" className="block text-xs font-semibold text-slate-700 mb-1">
+          <label htmlFor="event-date-input" className="block text-xs font-semibold text-slate-300 mb-1">
             Event Date
           </label>
           <div className="relative">
@@ -128,24 +107,17 @@ export const ContextWizard: React.FC<ContextWizardProps> = ({
             <input
               id="event-date-input"
               type="date"
-              aria-label="Event Date"
               value={context.eventDate}
-              onChange={(e) =>
-                onUpdateContext({
-                  ...context,
-                  eventDate: e.target.value,
-                })
-              }
-              className="w-full pl-9 pr-3 py-2 border border-slate-300 rounded-lg text-sm font-semibold focus:ring-2 focus:ring-amber-500"
+              onChange={(e) => onUpdateContext({ ...context, eventDate: e.target.value })}
+              className="w-full pl-9 pr-3 py-2 bg-black/50 border border-white/15 rounded-xl text-sm font-bold text-white focus:ring-2 focus:ring-amber-500"
             />
           </div>
         </div>
       </div>
 
-      {/* Priority Selector */}
-      <div className="mt-5 pt-4 border-t border-slate-100">
-        <label className="block text-xs font-semibold text-slate-700 mb-2">
-          Rank #1 Highest Priority (Protected from cost-cutting cuts)
+      <div className="mt-5 pt-4 border-t border-white/10">
+        <label className="block text-xs font-semibold text-slate-300 mb-2">
+          Rank #1 Highest Priority (Protected from automatic cost-cutting cuts)
         </label>
         <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Select #1 Priority">
           {allPriorities.map((cat) => {
@@ -157,10 +129,10 @@ export const ContextWizard: React.FC<ContextWizardProps> = ({
                 role="radio"
                 aria-checked={isTop}
                 onClick={() => handlePrioritySelect(cat)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all ${
                   isTop
-                    ? 'bg-amber-600 text-white border-amber-600 shadow-sm shadow-amber-500/20'
-                    : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-amber-50'
+                    ? 'btn-glow-amber text-slate-950 border-amber-400'
+                    : 'bg-white/[0.04] text-slate-300 border-white/10 hover:bg-white/[0.08]'
                 }`}
               >
                 {CATEGORY_LABELS[cat]} {isTop && '★'}
@@ -170,10 +142,9 @@ export const ContextWizard: React.FC<ContextWizardProps> = ({
         </div>
       </div>
 
-      {/* Accessibility & Inclusivity */}
-      <div className="mt-5 pt-4 border-t border-slate-100">
-        <label className="text-xs font-semibold text-slate-700 mb-2 flex items-center gap-1.5">
-          <HeartHandshake className="w-4 h-4 text-rose-500" />
+      <div className="mt-5 pt-4 border-t border-white/10">
+        <label className="text-xs font-semibold text-slate-300 mb-2 flex items-center gap-1.5">
+          <HeartHandshake className="w-4 h-4 text-rose-400" />
           Multi-Generational & Accessibility Requirements
         </label>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 mt-2">
@@ -182,17 +153,17 @@ export const ContextWizard: React.FC<ContextWizardProps> = ({
             return (
               <label
                 key={need}
-                className={`flex items-center space-x-2 p-2 rounded-lg border text-xs cursor-pointer transition-colors ${
+                className={`flex items-center space-x-2 p-2 rounded-xl border text-xs cursor-pointer transition-colors ${
                   checked
-                    ? 'border-emerald-500 bg-emerald-50/60 text-emerald-900'
-                    : 'border-slate-200 hover:bg-slate-50 text-slate-700'
+                    ? 'border-emerald-500/50 bg-emerald-500/10 text-emerald-300'
+                    : 'border-white/10 bg-white/[0.02] hover:bg-white/[0.06] text-slate-300'
                 }`}
               >
                 <input
                   type="checkbox"
                   checked={checked}
                   onChange={() => toggleAccessibility(need)}
-                  className="rounded text-amber-600 focus:ring-amber-500"
+                  className="rounded text-amber-500 focus:ring-amber-500 bg-black/40 border-white/20"
                 />
                 <span className="truncate">{need}</span>
               </label>

@@ -3,15 +3,7 @@
 import React from 'react';
 import { EventTask, TaskStatus } from '@/types/timeline';
 import { formatGoogleCalendarUrl } from '@/engine/calendarEngine';
-import {
-  Calendar,
-  AlertTriangle,
-  CheckCircle2,
-  Clock,
-  ExternalLink,
-  ChevronRight,
-  ShieldAlert,
-} from 'lucide-react';
+import { Calendar, AlertTriangle, CheckCircle2, Clock, ExternalLink, ShieldAlert } from 'lucide-react';
 
 interface TimelineTrackerProps {
   tasks: EventTask[];
@@ -26,27 +18,27 @@ export const TimelineTracker: React.FC<TimelineTrackerProps> = ({
   const hasDelays = delayedTasks.length > 0;
 
   return (
-    <section aria-labelledby="timeline-heading" className="bg-white rounded-2xl border border-amber-200/70 p-6 shadow-sm">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-100 gap-2">
+    <section aria-labelledby="timeline-heading" className="glass-panel rounded-2xl border border-white/10 p-6 shadow-2xl text-white">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-white/10 gap-2">
         <div>
-          <h2 id="timeline-heading" className="text-lg font-bold text-slate-900 flex items-center gap-2">
-            <Clock className="w-5 h-5 text-amber-600" />
+          <h2 id="timeline-heading" className="text-base font-bold text-white flex items-center gap-2">
+            <Clock className="w-5 h-5 text-amber-400" />
             Dependency-Aware Timeline & Critical Path
           </h2>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-slate-400">
             Topological DAG tracking: Marking a prerequisite task as &quot;Delayed&quot; automatically ripples through downstream dependencies.
           </p>
         </div>
 
         {hasDelays && (
-          <div className="flex items-center space-x-1.5 px-3 py-1 rounded-lg bg-amber-50 border border-amber-300 text-amber-900 text-xs font-semibold">
-            <ShieldAlert className="w-4 h-4 text-amber-600" />
+          <div className="flex items-center space-x-1.5 px-3 py-1 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-semibold">
+            <ShieldAlert className="w-4 h-4 text-amber-400" />
             <span>{delayedTasks.length} Milestones in Delay Ripple</span>
           </div>
         )}
       </div>
 
-      <div className="space-y-4 mt-6">
+      <div className="space-y-3.5 mt-6">
         {tasks.map((task) => {
           const isDelayed = task.status === 'delayed';
           const isCompleted = task.status === 'completed';
@@ -58,10 +50,10 @@ export const TimelineTracker: React.FC<TimelineTrackerProps> = ({
               key={task.id}
               className={`p-4 rounded-xl border transition-all ${
                 isDelayed
-                  ? 'border-amber-400 bg-amber-50/40 ring-1 ring-amber-300'
+                  ? 'border-amber-400/60 bg-amber-500/10 ring-1 ring-amber-400/40'
                   : isCompleted
-                  ? 'border-emerald-200 bg-emerald-50/20'
-                  : 'border-slate-200 bg-slate-50/40'
+                  ? 'border-emerald-500/30 bg-emerald-500/5'
+                  : 'border-white/10 bg-white/[0.03]'
               }`}
             >
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
@@ -69,10 +61,10 @@ export const TimelineTracker: React.FC<TimelineTrackerProps> = ({
                   <div
                     className={`mt-1 p-1.5 rounded-lg shrink-0 ${
                       isCompleted
-                        ? 'bg-emerald-600 text-white'
+                        ? 'bg-emerald-500 text-slate-950 font-bold'
                         : isDelayed
-                        ? 'bg-amber-500 text-white'
-                        : 'bg-slate-300 text-slate-700'
+                        ? 'bg-amber-500 text-slate-950 font-bold'
+                        : 'bg-white/10 text-slate-300'
                     }`}
                   >
                     {isCompleted ? (
@@ -86,33 +78,31 @@ export const TimelineTracker: React.FC<TimelineTrackerProps> = ({
 
                   <div>
                     <div className="flex items-center space-x-2 flex-wrap gap-y-1">
-                      <span className={`font-bold text-sm ${isCompleted ? 'line-through text-slate-500' : 'text-slate-900'}`}>
+                      <span className={`font-bold text-sm ${isCompleted ? 'line-through text-slate-500' : 'text-white'}`}>
                         {task.title}
                       </span>
                       {task.isCriticalPath && (
-                        <span className="text-[10px] uppercase font-extrabold px-1.5 py-0.2 rounded bg-rose-100 text-rose-800 border border-rose-300">
+                        <span className="text-[10px] uppercase font-bold px-1.5 py-0.2 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30">
                           Critical Path
                         </span>
                       )}
-                      <span className="text-xs text-slate-500 flex items-center gap-1">
+                      <span className="text-xs text-slate-400 flex items-center gap-1">
                         <Calendar className="w-3 h-3 text-slate-400" />
                         Due: {task.dueDate}
                       </span>
                     </div>
 
-                    <p className="text-xs text-slate-600 mt-1">{task.description}</p>
+                    <p className="text-xs text-slate-300 mt-1">{task.description}</p>
 
-                    {/* Mitigation ripple note */}
                     {hasMitigation && (
-                      <div className="mt-2 text-xs bg-amber-100/70 border border-amber-300 text-amber-900 p-2 rounded-lg flex items-center space-x-2">
-                        <AlertTriangle className="w-4 h-4 text-amber-700 shrink-0" />
+                      <div className="mt-2 text-xs bg-amber-500/15 border border-amber-500/30 text-amber-200 p-2 rounded-lg flex items-center space-x-2">
+                        <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
                         <span>{task.mitigationNote}</span>
                       </div>
                     )}
                   </div>
                 </div>
 
-                {/* Status Toggles & Calendar */}
                 <div className="flex items-center space-x-2 self-end md:self-center shrink-0">
                   <select
                     value={task.status}
@@ -123,16 +113,16 @@ export const TimelineTracker: React.FC<TimelineTrackerProps> = ({
                     aria-label={`Status for ${task.title}`}
                     className={`text-xs font-semibold px-2.5 py-1.5 rounded-lg border focus:ring-2 focus:ring-amber-500 ${
                       isCompleted
-                        ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                        ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
                         : isDelayed
-                        ? 'bg-amber-100 text-amber-900 border-amber-400'
-                        : 'bg-white text-slate-700 border-slate-300'
+                        ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                        : 'bg-black/60 text-slate-200 border-white/15'
                     }`}
                   >
-                    <option value="pending">Pending</option>
-                    <option value="in_progress">In Progress</option>
-                    <option value="completed">Completed</option>
-                    <option value="delayed">Delayed (+7d Ripple)</option>
+                    <option value="pending" className="bg-[#12101e] text-white">Pending</option>
+                    <option value="in_progress" className="bg-[#12101e] text-white">In Progress</option>
+                    <option value="completed" className="bg-[#12101e] text-white">Completed</option>
+                    <option value="delayed" className="bg-[#12101e] text-white">Delayed (+7d Ripple)</option>
                   </select>
 
                   <a
@@ -140,7 +130,7 @@ export const TimelineTracker: React.FC<TimelineTrackerProps> = ({
                     target="_blank"
                     rel="noopener noreferrer"
                     title="Add milestone to Google Calendar"
-                    className="p-1.5 rounded-lg border border-slate-300 hover:bg-slate-100 text-slate-600 transition-colors"
+                    className="p-1.5 rounded-lg border border-white/15 hover:bg-white/10 text-slate-300 transition-colors"
                     aria-label={`Add ${task.title} to Google Calendar`}
                   >
                     <ExternalLink className="w-4 h-4" />

@@ -45,13 +45,13 @@ export const VendorChecklist: React.FC = () => {
   const [expandedCat, setExpandedCat] = useState<PriorityCategory | null>('catering');
 
   return (
-    <section aria-labelledby="checklist-heading" className="bg-white rounded-2xl border border-amber-200/70 p-6 shadow-sm">
-      <div className="pb-4 border-b border-slate-100">
-        <h2 id="checklist-heading" className="text-lg font-bold text-slate-900 flex items-center gap-2">
-          <CheckSquare className="w-5 h-5 text-amber-600" />
+    <section aria-labelledby="checklist-heading" className="glass-panel rounded-2xl border border-white/10 p-6 shadow-2xl text-white">
+      <div className="pb-4 border-b border-white/10">
+        <h2 id="checklist-heading" className="text-base font-bold text-white flex items-center gap-2">
+          <CheckSquare className="w-5 h-5 text-amber-400" />
           Vendor Negotiation Checklist & Critical Questions
         </h2>
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-slate-400">
           Essential questions to ask each vendor category before signing contracts to protect your budget from surprise fees.
         </p>
       </div>
@@ -62,29 +62,29 @@ export const VendorChecklist: React.FC = () => {
           const questions = QUESTIONS_DATABASE[cat] || [];
 
           return (
-            <div key={cat} className="border border-slate-200 rounded-xl overflow-hidden">
+            <div key={cat} className="border border-white/10 rounded-xl overflow-hidden bg-black/40">
               <button
                 type="button"
                 onClick={() => setExpandedCat(isExpanded ? null : cat)}
-                className="w-full flex items-center justify-between p-3.5 bg-slate-50/70 hover:bg-slate-100 transition-colors text-left"
+                className="w-full flex items-center justify-between p-3.5 bg-white/[0.02] hover:bg-white/[0.05] transition-colors text-left"
                 aria-expanded={isExpanded}
               >
-                <span className="font-bold text-xs text-slate-800 flex items-center gap-2">
-                  <HelpCircle className="w-3.5 h-3.5 text-amber-600" />
+                <span className="font-bold text-xs text-slate-200 flex items-center gap-2">
+                  <HelpCircle className="w-3.5 h-3.5 text-amber-400" />
                   {CATEGORY_LABELS[cat]} ({questions.length} Essential Questions)
                 </span>
                 {isExpanded ? (
-                  <ChevronUp className="w-4 h-4 text-slate-500" />
+                  <ChevronUp className="w-4 h-4 text-slate-400" />
                 ) : (
-                  <ChevronDown className="w-4 h-4 text-slate-500" />
+                  <ChevronDown className="w-4 h-4 text-slate-400" />
                 )}
               </button>
 
               {isExpanded && (
-                <div className="p-4 bg-white space-y-2 border-t border-slate-100">
+                <div className="p-4 bg-black/60 space-y-2 border-t border-white/10">
                   {questions.map((q, idx) => (
-                    <div key={idx} className="flex items-start space-x-2 text-xs text-slate-700">
-                      <span className="font-bold text-amber-700 shrink-0">Q{idx + 1}.</span>
+                    <div key={idx} className="flex items-start space-x-2 text-xs text-slate-300">
+                      <span className="font-bold text-amber-400 shrink-0">Q{idx + 1}.</span>
                       <span>{q}</span>
                     </div>
                   ))}
