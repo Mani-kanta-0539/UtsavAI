@@ -2,7 +2,8 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Sparkles, Calendar, ArrowRight, ShieldCheck, User } from 'lucide-react';
+import { Sparkles, ArrowRight, User } from 'lucide-react';
+import { ThemeToggle } from './ThemeToggle';
 
 export const HomeNavbar: React.FC = () => {
   return (
@@ -13,51 +14,53 @@ export const HomeNavbar: React.FC = () => {
           <Sparkles className="w-5 h-5" />
         </div>
         <div className="flex flex-col">
-          <span className="font-extrabold text-lg tracking-tight text-white flex items-center gap-1.5">
-            Utsav<span className="text-amber-400">AI</span>
+          <span className="font-extrabold text-lg tracking-tight text-slate-900 dark:text-white flex items-center gap-1.5">
+            Utsav<span className="text-amber-500 dark:text-amber-400">AI</span>
           </span>
-          <span className="text-[10px] text-slate-400 font-medium -mt-1 hidden sm:inline">
+          <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium -mt-1 hidden sm:inline">
             PromptWars #1
           </span>
         </div>
       </Link>
 
       {/* Floating Center Pill Navigation */}
-      <nav aria-label="Main Navigation" className="hidden md:flex items-center space-x-1 px-4 py-1.5 rounded-full bg-white/[0.06] backdrop-blur-xl border border-white/10 shadow-2xl">
+      <nav aria-label="Main Navigation" className="hidden md:flex items-center space-x-1 px-4 py-1.5 rounded-full bg-white/70 dark:bg-white/[0.06] backdrop-blur-xl border border-amber-500/20 dark:border-white/10 shadow-xl">
         <Link
           href="/"
-          className="px-4 py-1.5 rounded-full text-xs font-semibold text-white bg-white/10 shadow-inner transition-colors"
+          className="px-4 py-1.5 rounded-full text-xs font-bold text-slate-900 dark:text-white bg-amber-500/15 dark:bg-white/10 transition-colors"
         >
           Home
         </Link>
         <Link
           href="#features"
-          className="px-4 py-1.5 rounded-full text-xs font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-colors"
+          className="px-4 py-1.5 rounded-full text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
         >
           Features
         </Link>
         <Link
           href="/onboard"
-          className="px-4 py-1.5 rounded-full text-xs font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-colors"
+          className="px-4 py-1.5 rounded-full text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
         >
           Discovery Quiz
         </Link>
         <Link
           href="/dashboard"
-          className="px-4 py-1.5 rounded-full text-xs font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-colors"
+          className="px-4 py-1.5 rounded-full text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
         >
           Live Dashboard
         </Link>
       </nav>
 
       {/* Right Actions */}
-      <div className="flex items-center space-x-3">
+      <div className="flex items-center space-x-2.5">
+        <ThemeToggle />
+
         <Link
           href="/login"
-          className="text-xs font-semibold text-slate-300 hover:text-white px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5"
+          className="text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white px-2.5 py-1.5 rounded-lg transition-colors flex items-center gap-1.5"
         >
-          <User className="w-3.5 h-3.5 text-slate-400" />
-          <span>Log In</span>
+          <User className="w-3.5 h-3.5 text-slate-500" />
+          <span className="hidden sm:inline">Log In</span>
         </Link>
 
         <Link

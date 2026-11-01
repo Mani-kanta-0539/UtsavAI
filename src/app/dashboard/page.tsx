@@ -143,7 +143,7 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className={`min-h-screen ${isHighContrast ? 'high-contrast' : ''} bg-[#0b0a12] text-white flex flex-col justify-between`}>
+    <div className={`min-h-screen ${isHighContrast ? 'high-contrast' : ''} text-slate-900 dark:text-white flex flex-col justify-between transition-colors`}>
       <Navbar currentPersonaTitle={activePreset.badge} isHighContrast={isHighContrast} onToggleHighContrast={() => setIsHighContrast(!isHighContrast)} onOpenPresetModal={() => setIsPresetModalOpen(true)} />
       <PresetSelector isOpen={isPresetModalOpen} activePresetId={activePreset.id} onSelectPreset={handleSelectPreset} onClose={() => setIsPresetModalOpen(false)} />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 flex-1 w-full">
