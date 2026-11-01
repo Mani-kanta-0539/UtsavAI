@@ -4,7 +4,7 @@
  * or quota-exhausted during automated evaluator grading.
  */
 
-import { TradeOffStrategy } from '../types/planner';
+import { TradeOffStrategy, PriorityCategory } from '../types/planner';
 import { ParsedVendorQuote } from '../types/vendor';
 import { ConceptStudioResponse } from '../types/api';
 
@@ -103,7 +103,7 @@ export function generateFallbackVendorComparisons(
     return {
       id: q.id,
       vendorName: q.vendorName,
-      category: category as any,
+      category: category as PriorityCategory,
       baseCost,
       taxesAndFees,
       grandTotal,

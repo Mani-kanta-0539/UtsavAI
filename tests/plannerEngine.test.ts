@@ -25,7 +25,7 @@ import {
   sanitizeAiOutput,
 } from '../src/services/securityFirewall';
 import { PRESET_WEDDING } from '../src/engine/demoPresets';
-import { TradeOffStrategy } from '../src/types/planner';
+import { TradeOffStrategy, PriorityCategory } from '../src/types/planner';
 import { EventTask } from '../src/types/timeline';
 
 describe('UtsavAI Deterministic Engine Tests', () => {
@@ -359,7 +359,7 @@ describe('UtsavAI Deterministic Engine Tests', () => {
 
   // Test 17: Consequence diff priority warning for top priority
   it('17. should specifically protect and mention user #1 priority in diff note', () => {
-    const ctx = { ...PRESET_WEDDING.context, priorities: ['catering', 'decor'] as any };
+    const ctx = { ...PRESET_WEDDING.context, priorities: ['catering', 'decor'] as PriorityCategory[] };
     const categories = allocateBudgetByPriority(ctx.totalBudget, ctx.priorities, ctx.eventType);
     const { consequence } = calculateGuestSurgeRipple(ctx, categories, 260);
 

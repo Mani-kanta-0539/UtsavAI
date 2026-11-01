@@ -74,10 +74,12 @@ export async function POST(req: NextRequest) {
       default:
         return NextResponse.json({ success: false, error: 'Unsupported action type.' }, { status: 400 });
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[UtsavAI] API Route Uncaught Error:', error);
+    const errorMessage =
+      error instanceof Error ? error.message : 'Internal server error while processing celebration request.';
     return NextResponse.json(
-      { success: false, error: error?.message || 'Internal server error while processing celebration request.' },
+      { success: false, error: errorMessage },
       { status: 500 }
     );
   }
