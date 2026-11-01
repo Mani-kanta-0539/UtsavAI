@@ -85,6 +85,7 @@ export const FloatingChatbot: React.FC = () => {
       {isOpen && (
         <div
           role="dialog"
+          aria-modal="true"
           aria-label="Utsav Mitra AI Chatbot"
           className="w-88 sm:w-96 rounded-3xl glass-panel border border-amber-500/30 dark:border-white/20 shadow-2xl overflow-hidden flex flex-col h-[480px] animate-fade-in"
         >
@@ -124,7 +125,10 @@ export const FloatingChatbot: React.FC = () => {
             ))}
           </div>
 
-          <div className="flex-1 p-4 overflow-y-auto space-y-3 text-xs">
+          <div
+            aria-live="polite"
+            className="flex-1 p-4 overflow-y-auto space-y-3 text-xs"
+          >
             {messages.map((m, i) => (
               <div
                 key={i}

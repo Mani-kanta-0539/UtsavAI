@@ -120,45 +120,47 @@ export default function DashboardPage() {
         {/* Step 5: Feature Navigation Tabs */}
         <DashboardTabs activeTab={activeTab} onTabChange={setActiveTab} />
 
-        {/* Tab 1: Priority-Weighted Budget Breakdown */}
-        {activeTab === 'budget' && (
-          <BudgetDashboard
-            categories={categories}
-            totalBudget={context.totalBudget}
-            topPriority={topPriority}
-            onToggleItemStatus={handleToggleItemStatus}
-          />
-        )}
-
-        {/* Tab 2: Topological DAG Timeline & Calendar Export */}
-        {activeTab === 'timeline' && (
-          <div className="space-y-6">
-            <TimelineTracker
-              tasks={tasks}
-              onUpdateTaskStatus={handleUpdateTaskStatus}
+        <div role="tabpanel" id={`panel-${activeTab}`} aria-labelledby={`tab-${activeTab}`}>
+          {/* Tab 1: Priority-Weighted Budget Breakdown */}
+          {activeTab === 'budget' && (
+            <BudgetDashboard
+              categories={categories}
+              totalBudget={context.totalBudget}
+              topPriority={topPriority}
+              onToggleItemStatus={handleToggleItemStatus}
             />
-            <CalendarExport
-              eventName={context.title}
-              tasks={tasks}
-              eventDate={context.eventDate}
-            />
-          </div>
-        )}
+          )}
 
-        {/* Tab 3: AI Vendor Quote Comparator & Red Flag Checklist */}
-        {activeTab === 'vendors' && (
-          <div className="space-y-6">
-            <VendorComparator
-              category={topPriority}
-              guestCount={context.guestCount}
-              sampleQuotes={activePreset.sampleVendorQuotes}
-            />
-            <VendorChecklist />
-          </div>
-        )}
+          {/* Tab 2: Topological DAG Timeline & Calendar Export */}
+          {activeTab === 'timeline' && (
+            <div className="space-y-6">
+              <TimelineTracker
+                tasks={tasks}
+                onUpdateTaskStatus={handleUpdateTaskStatus}
+              />
+              <CalendarExport
+                eventName={context.title}
+                tasks={tasks}
+                eventDate={context.eventDate}
+              />
+            </div>
+          )}
 
-        {/* Tab 4: Multi-Generational Cultural Concept Studio */}
-        {activeTab === 'concept' && <ConceptStudio context={context} />}
+          {/* Tab 3: AI Vendor Quote Comparator & Red Flag Checklist */}
+          {activeTab === 'vendors' && (
+            <div className="space-y-6">
+              <VendorComparator
+                category={topPriority}
+                guestCount={context.guestCount}
+                sampleQuotes={activePreset.sampleVendorQuotes}
+              />
+              <VendorChecklist />
+            </div>
+          )}
+
+          {/* Tab 4: Multi-Generational Cultural Concept Studio */}
+          {activeTab === 'concept' && <ConceptStudio context={context} />}
+        </div>
       </main>
 
       {/* Global Accessibility Footer */}

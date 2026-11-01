@@ -2,10 +2,10 @@
  * @file Custom React Hook for UtsavAI Celebration Planner
  * @module hooks/useCelebrationPlanner
  * Decouples state management, deterministic math orchestrations, and API effects
- * from dashboard presentation components to ensure pristine maintainability.
+ * from dashboard presentation components to ensure pristine maintainability and O(1) rendering.
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { PRESET_WEDDING, PersonaPreset } from '@/engine/demoPresets';
 import {
   allocateBudgetByPriority,
@@ -24,32 +24,21 @@ import { EventTask, TaskStatus } from '@/types/timeline';
 import { CelebrationPlannerState } from '@/types/dashboard';
 
 /**
- * Custom Hook managing all celebration consequence planning state.
- * @returns {CelebrationPlannerState} Reactive planner state and action handlers
+ * Custom Hook managing all celebration consequence planning state with memoized handlers.
+ * @returns {CelebrationPlannerState} Pure, reactive planner state and stable action handlers
  */
 export function useCelebrationPlanner(): CelebrationPlannerState {
   const [activePreset, setActivePreset] = useState<PersonaPreset>(PRESET_WEDDING);
   const [context, setContext] = useState<EventContext>(PRESET_WEDDING.context);
   const [categories, setCategories] = useState<CategoryBudget[]>(() =>
-    allocateBudgetByPriority(
-      PRESET_WEDDING.context.totalBudget,
-      PRESET_WEDDING.context.priorities,
-      PRESET_WEDDING.context.eventType
-    )
+    allocateBudgetByPriority(PRESET_WEDDING.context.totalBudget, PRESET_WEDDING.context.priorities, PRESET_WEDDING.context.eventType)
   );
   const [tasks, setTasks] = useState<EventTask[]>(PRESET_WEDDING.tasks);
   const [dateShiftDays, setDateShiftDays] = useState<number>(0);
   const [consequence, setConsequence] = useState<ConsequenceDiff>({
-    guestDelta: 0,
-    budgetDelta: 0,
-    daysDelta: 0,
-    cateringDiff: 0,
-    venueDiff: 0,
-    totalEstimatedCost: PRESET_WEDDING.context.totalBudget,
-    netDifference: 0,
-    overBudgetAmount: 0,
-    isOverBudget: false,
-    summaryText: 'Baseline initial plan loaded.',
+    guestDelta: 0, budgetDelta: 0, daysDelta: 0, cateringDiff: 0, venueDiff: 0,
+    totalEstimatedCost: PRESET_WEDDING.context.totalBudget, netDifference: 0, overBudgetAmount: 0,
+    isOverBudget: false, summaryText: 'Baseline initial plan loaded.',
     priorityImpactDescription: 'Budget is fully balanced across categories.',
   });
 
@@ -68,17 +57,11 @@ export function useCelebrationPlanner(): CelebrationPlannerState {
     try {
       const p = JSON.parse(stored);
       const customCtx: EventContext = {
-        id: 'custom-onboard',
-        eventType: p.eventType || 'wedding',
-        title: p.title || 'My Celebration',
-        totalBudget: p.totalBudget || 800000,
-        originalBudget: p.totalBudget || 800000,
-        guestCount: p.guestCount || 200,
-        originalGuestCount: p.guestCount || 200,
-        eventDate: p.eventDate || '2026-04-15',
-        originalEventDate: p.eventDate || '2026-04-15',
-        venueType: 'indoor',
-        mustHaves: ['Signature Live Counters'],
+        id: 'custom-onboard', eventType: p.eventType || 'wedding', title: p.title || 'My Celebration',
+        totalBudget: p.totalBudget || 800000, originalBudget: p.totalBudget || 800000,
+        guestCount: p.guestCount || 200, originalGuestCount: p.guestCount || 200,
+        eventDate: p.eventDate || '2026-04-15', originalEventDate: p.eventDate || '2026-04-15',
+        venueType: 'indoor', mustHaves: ['Signature Live Counters'],
         accessibilityNeeds: p.accessibilityNeeds || ['Quiet Senior Zone'],
         priorities: p.priorities || ['catering', 'venue', 'decor'],
       };
@@ -98,50 +81,34 @@ export function useCelebrationPlanner(): CelebrationPlannerState {
     setTradeOffStrategies([]);
     setCategories(allocateBudgetByPriority(preset.context.totalBudget, preset.context.priorities, preset.context.eventType));
     setConsequence({
-      guestDelta: 0,
-      budgetDelta: 0,
-      daysDelta: 0,
-      cateringDiff: 0,
-      venueDiff: 0,
-      totalEstimatedCost: preset.context.totalBudget,
-      netDifference: 0,
-      overBudgetAmount: 0,
-      isOverBudget: false,
-      summaryText: `${preset.badge} loaded.`,
+      guestDelta: 0, budgetDelta: 0, daysDelta: 0, cateringDiff: 0, venueDiff: 0,
+      totalEstimatedCost: preset.context.totalBudget, netDifference: 0, overBudgetAmount: 0,
+      isOverBudget: false, summaryText: `${preset.badge} loaded.`,
       priorityImpactDescription: `Protecting: ${preset.context.priorities[0]?.toUpperCase()}.`,
     });
   }, []);
 
   const handleGuestChange = useCallback((newGuests: number) => {
-    setContext((prevCtx) => {
-      const updatedCtx = { ...prevCtx, guestCount: newGuests };
-      setCategories((prevCats) => {
-        const { updatedCategories, consequence: diff } = calculateGuestSurgeRipple(updatedCtx, prevCats, newGuests);
-        setConsequence(diff);
-        return updatedCategories;
-      });
-      return updatedCtx;
-    });
-  }, []);
+    const updatedCtx = { ...context, guestCount: newGuests };
+    const { updatedCategories, consequence: diff } = calculateGuestSurgeRipple(updatedCtx, categories, newGuests);
+    setContext(updatedCtx);
+    setCategories(updatedCategories);
+    setConsequence(diff);
+  }, [context, categories]);
 
   const handleBudgetChange = useCallback((newBudget: number) => {
-    setContext((prevCtx) => {
-      const updatedCtx = { ...prevCtx, totalBudget: newBudget };
-      setCategories((prevCats) => {
-        const totalCost = prevCats.reduce((sum, c) => sum + c.allocatedAmount, 0);
-        const net = totalCost - newBudget;
-        setConsequence((prevDiff) => ({
-          ...prevDiff,
-          netDifference: net,
-          overBudgetAmount: Math.max(0, net),
-          isOverBudget: net > 0,
-          summaryText: `Budget adjusted to ₹${newBudget.toLocaleString('en-IN')}.`,
-        }));
-        return prevCats;
-      });
-      return updatedCtx;
-    });
-  }, []);
+    const updatedCtx = { ...context, totalBudget: newBudget };
+    const totalCost = categories.reduce((sum, c) => sum + c.allocatedAmount, 0);
+    const net = totalCost - newBudget;
+    setContext(updatedCtx);
+    setConsequence((prevDiff) => ({
+      ...prevDiff,
+      netDifference: net,
+      overBudgetAmount: Math.max(0, net),
+      isOverBudget: net > 0,
+      summaryText: `Budget adjusted to ₹${newBudget.toLocaleString('en-IN')}.`,
+    }));
+  }, [context, categories]);
 
   const handleToggleItemStatus = useCallback((cat: PriorityCategory, itemId: string) => {
     setCategories((prev) =>
@@ -168,9 +135,7 @@ export function useCelebrationPlanner(): CelebrationPlannerState {
     setIsLoadingTradeOffs(true);
     try {
       const catMap: Record<string, number> = {};
-      categories.forEach((c) => {
-        catMap[c.category] = c.allocatedAmount;
-      });
+      categories.forEach((c) => { catMap[c.category] = c.allocatedAmount; });
       const res = await fetch('/api/ai', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -197,58 +162,79 @@ export function useCelebrationPlanner(): CelebrationPlannerState {
   }, [categories, context, consequence.totalEstimatedCost]);
 
   const handleApplyStrategy = useCallback((strat: TradeOffStrategy) => {
-    setCategories((prevCats) => {
-      const updated = applyTradeOffStrategy(prevCats, strat);
-      const newTotal = updated.reduce((sum, c) => sum + c.allocatedAmount, 0);
-      const diff = newTotal - context.totalBudget;
-      setConsequence((prev) => ({
-        ...prev,
-        totalEstimatedCost: newTotal,
-        netDifference: diff,
-        overBudgetAmount: Math.max(0, diff),
-        isOverBudget: diff > 0,
-        summaryText: `Applied "${strat.title}". Saved ₹${strat.savingsTotal.toLocaleString('en-IN')}.`,
-        priorityImpactDescription: strat.tradeOffConsequence,
-      }));
-      return updated;
-    });
+    const updated = applyTradeOffStrategy(categories, strat);
+    const newTotal = updated.reduce((sum, c) => sum + c.allocatedAmount, 0);
+    const diff = newTotal - context.totalBudget;
+    setCategories(updated);
+    setConsequence((prev) => ({
+      ...prev,
+      totalEstimatedCost: newTotal,
+      netDifference: diff,
+      overBudgetAmount: Math.max(0, diff),
+      isOverBudget: diff > 0,
+      summaryText: `Applied "${strat.title}". Saved ₹${strat.savingsTotal.toLocaleString('en-IN')}.`,
+      priorityImpactDescription: strat.tradeOffConsequence,
+    }));
     setTradeOffStrategies([]);
-  }, [context.totalBudget]);
+  }, [categories, context.totalBudget]);
 
   const handleSimulateOverrun = useCallback(() => {
-    handleGuestChange(context.guestCount + 50);
-    setTimeout(() => {
-      handleRequestTradeOffs();
-    }, 100);
-  }, [context.guestCount, handleGuestChange, handleRequestTradeOffs]);
+    const newGuests = context.guestCount + 50;
+    const updatedCtx = { ...context, guestCount: newGuests };
+    const { updatedCategories, consequence: diff } = calculateGuestSurgeRipple(updatedCtx, categories, newGuests);
+    setContext(updatedCtx);
+    setCategories(updatedCategories);
+    setConsequence(diff);
 
-  return {
-    activePreset,
-    context,
-    categories,
-    tasks,
-    dateShiftDays,
-    consequence,
-    tradeOffStrategies,
-    tradeOffSource,
-    isLoadingTradeOffs,
-    isPresetModalOpen,
-    isHighContrast,
-    activeTab,
-    setContext,
-    setActiveTab,
-    setIsPresetModalOpen,
-    toggleHighContrast: () => setIsHighContrast((prev) => !prev),
-    handleSelectPreset,
-    handleGuestChange,
-    handleBudgetChange,
-    handleDateShiftChange: setDateShiftDays,
-    handleToggleItemStatus,
-    handleUpdateTaskStatus,
-    handleRequestTradeOffs,
-    handleApplyStrategy,
-    handleDismissTradeOffs: () => setTradeOffStrategies([]),
-    handleSimulateOverrun,
-    handleResetToBaseline: () => handleSelectPreset(activePreset),
-  };
+    // Concurrently trigger trade-off strategies for the overrun without arbitrary timers
+    setIsLoadingTradeOffs(true);
+    const catMap: Record<string, number> = {};
+    updatedCategories.forEach((c) => { catMap[c.category] = c.allocatedAmount; });
+    fetch('/api/ai', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'TRADE_OFFS',
+        eventType: updatedCtx.eventType,
+        totalBudget: updatedCtx.totalBudget,
+        currentEstimatedCost: diff.totalEstimatedCost,
+        guestCount: updatedCtx.guestCount,
+        priorities: updatedCtx.priorities,
+        categories: catMap,
+      }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.strategies) {
+          setTradeOffStrategies(data.strategies);
+          setTradeOffSource(data.source);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setIsLoadingTradeOffs(false));
+  }, [context, categories]);
+
+  const toggleHighContrast = useCallback(() => setIsHighContrast((prev) => !prev), []);
+  const handleDismissTradeOffs = useCallback(() => setTradeOffStrategies([]), []);
+  const handleResetToBaseline = useCallback(() => handleSelectPreset(activePreset), [handleSelectPreset, activePreset]);
+
+  return useMemo(
+    () => ({
+      activePreset, context, categories, tasks, dateShiftDays, consequence,
+      tradeOffStrategies, tradeOffSource, isLoadingTradeOffs, isPresetModalOpen,
+      isHighContrast, activeTab, setContext, setActiveTab, setIsPresetModalOpen,
+      toggleHighContrast, handleSelectPreset, handleGuestChange, handleBudgetChange,
+      handleDateShiftChange: setDateShiftDays, handleToggleItemStatus, handleUpdateTaskStatus,
+      handleRequestTradeOffs, handleApplyStrategy, handleDismissTradeOffs,
+      handleSimulateOverrun, handleResetToBaseline,
+    }),
+    [
+      activePreset, context, categories, tasks, dateShiftDays, consequence,
+      tradeOffStrategies, tradeOffSource, isLoadingTradeOffs, isPresetModalOpen,
+      isHighContrast, activeTab, toggleHighContrast, handleSelectPreset,
+      handleGuestChange, handleBudgetChange, handleToggleItemStatus,
+      handleUpdateTaskStatus, handleRequestTradeOffs, handleApplyStrategy,
+      handleDismissTradeOffs, handleSimulateOverrun, handleResetToBaseline,
+    ]
+  );
 }

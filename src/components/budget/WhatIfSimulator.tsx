@@ -94,6 +94,11 @@ export const WhatIfSimulator: React.FC<WhatIfSimulatorProps> = ({
             max={originalGuests + 150}
             step={5}
             value={currentGuests}
+            aria-valuemin={Math.max(20, originalGuests - 100)}
+            aria-valuemax={originalGuests + 150}
+            aria-valuenow={currentGuests}
+            aria-valuetext={`${currentGuests} Guests`}
+            aria-label="Adjust Guest Count"
             onChange={(e) => onUpdateGuests(Number(e.target.value))}
             className="w-full h-2 bg-slate-200 dark:bg-white/10 rounded-lg appearance-none cursor-pointer accent-blue-500"
           />
@@ -122,6 +127,11 @@ export const WhatIfSimulator: React.FC<WhatIfSimulatorProps> = ({
             max={Math.round(originalBudget * 1.3)}
             step={10000}
             value={currentBudget}
+            aria-valuemin={Math.round(originalBudget * 0.7)}
+            aria-valuemax={Math.round(originalBudget * 1.3)}
+            aria-valuenow={currentBudget}
+            aria-valuetext={`₹${currentBudget.toLocaleString('en-IN')}`}
+            aria-label="Adjust Budget Ceiling"
             onChange={(e) => onUpdateBudget(Number(e.target.value))}
             className="w-full h-2 bg-slate-200 dark:bg-white/10 rounded-lg appearance-none cursor-pointer accent-amber-500"
           />
@@ -150,6 +160,11 @@ export const WhatIfSimulator: React.FC<WhatIfSimulatorProps> = ({
             max={30}
             step={2}
             value={dateShiftDays}
+            aria-valuemin={-30}
+            aria-valuemax={30}
+            aria-valuenow={dateShiftDays}
+            aria-valuetext={`${dateShiftDays} days shift`}
+            aria-label="Adjust Timeline Shift in Days"
             onChange={(e) => onUpdateDateShift(Number(e.target.value))}
             className="w-full h-2 bg-slate-200 dark:bg-white/10 rounded-lg appearance-none cursor-pointer accent-purple-500"
           />

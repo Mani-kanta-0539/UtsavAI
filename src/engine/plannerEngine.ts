@@ -56,22 +56,8 @@ export function allocateBudgetByPriority(
     const isFixed = FIXED_COST_CATEGORIES.includes(cat);
 
     const items: BudgetLineItem[] = [
-      {
-        id: `item-${cat}-1`,
-        category: cat,
-        name: `Primary ${CATEGORY_LABELS[cat]}`,
-        estimatedCost: Math.round(allocated * 0.75),
-        status: 'unverified_ai',
-        isFixedCost: isFixed,
-      },
-      {
-        id: `item-${cat}-2`,
-        category: cat,
-        name: `Ancillary ${CATEGORY_LABELS[cat]}`,
-        estimatedCost: Math.round(allocated * 0.25),
-        status: 'unverified_ai',
-        isFixedCost: isFixed,
-      },
+      { id: `item-${cat}-1`, category: cat, name: `Primary ${CATEGORY_LABELS[cat]}`, estimatedCost: Math.round(allocated * 0.75), status: 'unverified_ai', isFixedCost: isFixed },
+      { id: `item-${cat}-2`, category: cat, name: `Ancillary ${CATEGORY_LABELS[cat]}`, estimatedCost: Math.round(allocated * 0.25), status: 'unverified_ai', isFixedCost: isFixed },
     ];
 
     return {
@@ -130,41 +116,32 @@ export function calculateGuestSurgeRipple(
   const isOverBudget = netDifference > 0;
   const topPriority = context.priorities[0] || 'catering';
 
-  const summaryText =
-    guestDelta !== 0
-      ? `${guestDelta > 0 ? '+' : ''}${guestDelta} guests changed catering by ₹${cateringDiff.toLocaleString('en-IN')}.${
-          venueDiff > 0
-            ? ` Venue capacity tier added ₹${venueDiff.toLocaleString('en-IN')}.`
-            : ''
-        }`
-      : 'Guest count unchanged.';
+  const summaryText = guestDelta !== 0
+    ? `${guestDelta > 0 ? '+' : ''}${guestDelta} guests changed catering by ₹${cateringDiff.toLocaleString('en-IN')}.${venueDiff > 0 ? ` Venue capacity tier added ₹${venueDiff.toLocaleString('en-IN')}.` : ''}`
+    : 'Guest count unchanged.';
 
-  const priorityImpactDescription =
-    topPriority === 'catering' && isOverBudget
-      ? 'Catering is your #1 Priority. Do not compromise per-plate food quality—use UtsavAI trade-off scenarios to rebalance decor or photo.'
-      : isOverBudget
-      ? `Budget exceeded by ₹${netDifference.toLocaleString('en-IN')}. Protect your priority (${CATEGORY_LABELS[topPriority]}).`
-      : 'Budget remains healthy within safe boundaries.';
+  const priorityImpactDescription = topPriority === 'catering' && isOverBudget
+    ? 'Catering is your #1 Priority. Do not compromise per-plate food quality—use UtsavAI trade-off scenarios to rebalance decor or photo.'
+    : isOverBudget
+    ? `Budget exceeded by ₹${netDifference.toLocaleString('en-IN')}. Protect your priority (${CATEGORY_LABELS[topPriority]}).`
+    : 'Budget remains healthy within safe boundaries.';
 
   const consequence: ConsequenceDiff = {
-    guestDelta,
-    budgetDelta: 0,
-    daysDelta: 0,
-    cateringDiff,
-    venueDiff,
-    totalEstimatedCost,
-    netDifference,
-    overBudgetAmount: Math.max(0, netDifference),
-    isOverBudget,
-    summaryText,
-    priorityImpactDescription,
+    guestDelta, budgetDelta: 0, daysDelta: 0, cateringDiff, venueDiff, totalEstimatedCost, netDifference,
+    overBudgetAmount: Math.max(0, netDifference), isOverBudget, summaryText, priorityImpactDescription,
   };
 
   return { updatedCategories, consequence };
 }
 
 /**
- * Propagates task status and delay ripples across the Dependency DAG.
+ * Propagates task status and delay ripples across the Dependency DAG in O(V+E) time.
+ * Constructs an inverted downstream adjacency list to traverse impacted tasks in linear time.
+ * @param tasks Complete list of event tasks
+ * @param modifiedTaskId Identifier of the task experiencing status or delay change
+ * @param newStatus New operational status for the target task
+ * @param delayDays Number of days delayed (if applicable)
+ * @returns {DAGPropagationResult} Updated task array and critical path consequence telemetry
  */
 export function recalculateTimelineDAG(
   tasks: EventTask[],
@@ -190,26 +167,35 @@ export function recalculateTimelineDAG(
 
   const impactedDownstreamIds: string[] = [];
 
-  // Downstream propagation BFS/DFS
+  // Optimal O(V + E) Downstream propagation using pre-indexed adjacency graph
   if (newStatus === 'delayed' && delayDays > 0) {
-    const queue = [modifiedTaskId];
+    const downstreamMap = new Map<string, string[]>();
+    tasks.forEach((t) => {
+      t.dependsOn.forEach((prereqId) => {
+        const existing = downstreamMap.get(prereqId) || [];
+        existing.push(t.id);
+        downstreamMap.set(prereqId, existing);
+      });
+    });
+
+    const queue: string[] = [modifiedTaskId];
     const visited = new Set<string>();
 
     while (queue.length > 0) {
       const currentId = queue.shift()!;
       visited.add(currentId);
 
-      tasks.forEach((t) => {
-        if (t.dependsOn.includes(currentId) && !visited.has(t.id)) {
-          const downstreamTask = taskMap.get(t.id);
+      const dependents = downstreamMap.get(currentId) || [];
+      dependents.forEach((depId) => {
+        if (!visited.has(depId)) {
+          const downstreamTask = taskMap.get(depId);
           if (downstreamTask) {
-            impactedDownstreamIds.push(t.id);
-            // Shift due date by delayDays
+            impactedDownstreamIds.push(depId);
             const currentDue = new Date(downstreamTask.dueDate);
             currentDue.setDate(currentDue.getDate() + delayDays);
             downstreamTask.dueDate = currentDue.toISOString().split('T')[0];
             downstreamTask.mitigationNote = `Prerequisite "${targetTask.title}" delayed by ${delayDays}d. Expedite vendor selection to recover buffer.`;
-            queue.push(t.id);
+            queue.push(depId);
           }
         }
       });

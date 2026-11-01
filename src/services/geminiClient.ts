@@ -49,7 +49,8 @@ Generate exactly 3 distinct trade-off strategies to bring the cost back under bu
       contents: prompt,
       config: { responseMimeType: 'application/json' },
     });
-    const parsed = JSON.parse(response.text || '') as TradeOffStrategy[];
+    const cleanedText = sanitizeAiOutput(response.text || '');
+    const parsed = JSON.parse(cleanedText) as TradeOffStrategy[];
     if (Array.isArray(parsed) && parsed.length > 0) return { strategies: parsed, source: 'gemini' };
     throw new Error('Invalid format');
   } catch (error) {
@@ -64,10 +65,16 @@ Generate exactly 3 distinct trade-off strategies to bring the cost back under bu
 export async function parseVendorQuotes(
   req: Extract<AIRequest, { action: 'PARSE_VENDOR_QUOTES' }>
 ): Promise<{ comparisons: ParsedVendorQuote[]; source: 'gemini' | 'smart_fallback' }> {
-  if (!aiClient) return { comparisons: generateFallbackVendorComparisons(req.category, req.guestCount, req.quotes), source: 'smart_fallback' };
+  // Sanitize all quote raw texts through AI Firewall
+  const sanitizedQuotes = req.quotes.map((q) => ({
+    ...q,
+    rawText: inspectAndSanitizePrompt(q.rawText).sanitizedText,
+  }));
+
+  if (!aiClient) return { comparisons: generateFallbackVendorComparisons(req.category, req.guestCount, sanitizedQuotes), source: 'smart_fallback' };
 
   try {
-    const prompt = `Analyze quotes for ${req.category} (${req.guestCount} pax): ${JSON.stringify(req.quotes)}.
+    const prompt = `Analyze quotes for ${req.category} (${req.guestCount} pax): ${JSON.stringify(sanitizedQuotes)}.
 Extract true costs, hidden fees (+18% GST extra, diesel, cleaning), pros, cons, priority fit (0-100). Return JSON array:
 [{"id":"quote-id","vendorName":"Vendor","category":"${req.category}","baseCost":150000,"taxesAndFees":27000,"grandTotal":177000,"perPersonEquivalent":885,"includedPerks":[],"hiddenCharges":[],"redFlags":[],"priorityFitScore":85,"pros":[],"cons":[],"verdict":"Recommendation"}]`;
 
@@ -76,27 +83,31 @@ Extract true costs, hidden fees (+18% GST extra, diesel, cleaning), pros, cons, 
       contents: prompt,
       config: { responseMimeType: 'application/json' },
     });
-    const parsed = JSON.parse(response.text || '') as ParsedVendorQuote[];
+    const cleanedText = sanitizeAiOutput(response.text || '');
+    const parsed = JSON.parse(cleanedText) as ParsedVendorQuote[];
     if (Array.isArray(parsed) && parsed.length > 0) return { comparisons: parsed, source: 'gemini' };
     throw new Error('Invalid JSON');
   } catch (error) {
     console.warn('[UtsavAI] Gemini Quote API error, serving Smart Fallback:', error);
-    return { comparisons: generateFallbackVendorComparisons(req.category, req.guestCount, req.quotes), source: 'smart_fallback' };
+    return { comparisons: generateFallbackVendorComparisons(req.category, req.guestCount, sanitizedQuotes), source: 'smart_fallback' };
   }
 }
 
 export async function generateEventConcept(
   req: Extract<AIRequest, { action: 'GENERATE_CONCEPTS' }>
 ): Promise<{ concept: ConceptStudioResponse; source: 'gemini' | 'smart_fallback' }> {
+  // Guardrail user refinement prompt
+  const safeRefine = req.refinePrompt ? inspectAndSanitizePrompt(req.refinePrompt).sanitizedText : undefined;
+
   if (!aiClient) {
     return {
-      concept: generateFallbackConcept(req.eventType, req.guestCount, req.totalBudget, req.accessibilityNeeds, req.priorities, req.mustHaves, req.refinePrompt),
+      concept: generateFallbackConcept(req.eventType, req.guestCount, req.totalBudget, req.accessibilityNeeds, req.priorities, req.mustHaves, safeRefine),
       source: 'smart_fallback',
     };
   }
 
   try {
-    const prompt = `Event: ${req.eventType} (${req.guestCount} pax, Budget: ₹${req.totalBudget}). Needs: ${req.accessibilityNeeds.join(', ')}. Priorities: ${req.priorities.join(', ')}. Musts: ${req.mustHaves.join(', ')}. ${req.refinePrompt ? `Refinement: "${req.refinePrompt}"` : ''}
+    const prompt = `Event: ${req.eventType} (${req.guestCount} pax, Budget: ₹${req.totalBudget}). Needs: ${req.accessibilityNeeds.join(', ')}. Priorities: ${req.priorities.join(', ')}. Musts: ${req.mustHaves.join(', ')}. ${safeRefine ? `Refinement: "${safeRefine}"` : ''}
 Return JSON: {"themeName":"","tagline":"","culturalRationale":"","demographicZones":[{"zoneName":"","targetAudience":"","features":[]}],"menuHighlights":[{"category":"","items":[],"dietaryNotes":""}],"costSavingIdea":""}`;
 
     const response = await aiClient.models.generateContent({
@@ -104,13 +115,14 @@ Return JSON: {"themeName":"","tagline":"","culturalRationale":"","demographicZon
       contents: prompt,
       config: { responseMimeType: 'application/json' },
     });
-    const parsed = JSON.parse(response.text || '') as ConceptStudioResponse;
+    const cleanedText = sanitizeAiOutput(response.text || '');
+    const parsed = JSON.parse(cleanedText) as ConceptStudioResponse;
     if (parsed.themeName && parsed.demographicZones) return { concept: parsed, source: 'gemini' };
     throw new Error('Invalid concept');
   } catch (error) {
     console.warn('[UtsavAI] Gemini Concept API error, serving Smart Fallback:', error);
     return {
-      concept: generateFallbackConcept(req.eventType, req.guestCount, req.totalBudget, req.accessibilityNeeds, req.priorities, req.mustHaves, req.refinePrompt),
+      concept: generateFallbackConcept(req.eventType, req.guestCount, req.totalBudget, req.accessibilityNeeds, req.priorities, req.mustHaves, safeRefine),
       source: 'smart_fallback',
     };
   }

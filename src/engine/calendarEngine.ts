@@ -47,7 +47,7 @@ export function generateICSContent(eventName: string, tasks: EventTask[]): strin
     lines.push(`DTSTART;VALUE=DATE:${cleanDate}`);
     lines.push(`SUMMARY:[UtsavAI] ${t.title}`);
     lines.push(
-      `DESCRIPTION:${t.description.replace(/\n/g, ' ')} | Status: ${t.status.toUpperCase()}`
+      `DESCRIPTION:${(t.description || t.title).replace(/\n/g, ' ')} | Status: ${t.status.toUpperCase()}`
     );
     lines.push(`STATUS:${t.status === 'completed' ? 'CONFIRMED' : 'TENTATIVE'}`);
     lines.push('END:VEVENT');

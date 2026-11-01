@@ -33,11 +33,7 @@ export default function OnboardPage() {
 
   const handleFinish = () => {
     const customConfig = {
-      eventType,
-      title,
-      totalBudget: budget,
-      guestCount: guests,
-      eventDate: date,
+      eventType, title, totalBudget: budget, guestCount: guests, eventDate: date,
       priorities: [topPriority, 'venue', 'decor', 'photography', 'buffer'],
       accessibilityNeeds: selectedAccessibility,
     };
@@ -115,10 +111,7 @@ export default function OnboardPage() {
                 <div className="relative">
                   <IndianRupee className="w-4 h-4 absolute left-3 top-3 text-slate-500 dark:text-slate-400" />
                   <input
-                    type="number"
-                    min={20000}
-                    step={10000}
-                    value={budget}
+                    type="number" min={20000} step={10000} value={budget}
                     onChange={(e) => setBudget(Number(e.target.value))}
                     className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-white/70 dark:bg-white/[0.05] border border-amber-500/25 dark:border-white/15 text-sm font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500"
                   />
@@ -132,10 +125,7 @@ export default function OnboardPage() {
                 <div className="relative">
                   <Users className="w-4 h-4 absolute left-3 top-3 text-slate-500 dark:text-slate-400" />
                   <input
-                    type="number"
-                    min={10}
-                    max={2000}
-                    value={guests}
+                    type="number" min={10} max={2000} value={guests}
                     onChange={(e) => setGuests(Number(e.target.value))}
                     className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-white/70 dark:bg-white/[0.05] border border-amber-500/25 dark:border-white/15 text-sm font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500"
                   />
@@ -147,9 +137,7 @@ export default function OnboardPage() {
                   Event Date
                 </label>
                 <input
-                  type="date"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
+                  type="date" value={date} onChange={(e) => setDate(e.target.value)}
                   className="w-full px-4 py-2.5 rounded-xl bg-white/70 dark:bg-white/[0.05] border border-amber-500/25 dark:border-white/15 text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500 font-semibold"
                 />
               </div>
