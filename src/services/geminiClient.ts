@@ -1,6 +1,6 @@
 /**
  * @file Gemini API Client & Integration Layer for UtsavAI
- * Calls Google Gemini (gemini-2.5-flash / gemini-3.8-flash) via @google/genai,
+ * Calls Google Gemini (gemini-2.5-flash) via @google/genai,
  * with zero client-side key leakage and seamless graceful fallback.
  */
 
@@ -26,214 +26,120 @@ if (apiKey && apiKey.trim().length > 10) {
   }
 }
 
-/**
- * Executes Trade-Off Generation using Gemini, falling back gracefully if necessary.
- */
 export async function getTradeOffStrategies(
   req: Extract<AIRequest, { action: 'TRADE_OFFS' }>
 ): Promise<{ strategies: TradeOffStrategy[]; source: 'gemini' | 'smart_fallback' }> {
   if (!aiClient) {
     return {
-      strategies: generateFallbackTradeOffs(
-        req.eventType,
-        req.totalBudget,
-        req.currentEstimatedCost,
-        req.guestCount,
-        req.priorities,
-        req.categories
-      ),
+      strategies: generateFallbackTradeOffs(req.eventType, req.totalBudget, req.currentEstimatedCost, req.guestCount, req.priorities, req.categories),
       source: 'smart_fallback',
     };
   }
 
   try {
     const prompt = `You are an expert event architect for UtsavAI.
-Event Type: ${req.eventType}
-Budget: ₹${req.totalBudget}
-Current Estimated Cost: ₹${req.currentEstimatedCost} (Over budget by ₹${req.currentEstimatedCost - req.totalBudget})
-Guest Count: ${req.guestCount}
-User Priorities in order: ${req.priorities.join(' > ')}
-Category allocations: ${JSON.stringify(req.categories)}
-
-Generate exactly 3 distinct trade-off strategies to bring the cost back under budget.
-Return ONLY valid JSON matching this schema:
-[
-  {
-    "id": "strat-1",
-    "title": "Short title",
-    "tagline": "One-line hook",
-    "description": "2-3 sentences explaining exactly how to rebalance",
-    "categoryAdjustments": { "decor": -20000, "photography": -15000 },
-    "savingsTotal": 35000,
-    "tradeOffConsequence": "Honest explanation of what changes visually or operationally",
-    "badge": "Priority Shield" | "Balanced" | "Aggressive"
-  }
-]`;
+Event Type: ${req.eventType} | Budget: ₹${req.totalBudget} | Current Cost: ₹${req.currentEstimatedCost} | Guest Count: ${req.guestCount}
+User Priorities: ${req.priorities.join(' > ')} | Categories: ${JSON.stringify(req.categories)}
+Generate exactly 3 distinct trade-off strategies to bring the cost back under budget. Return ONLY valid JSON:
+[{"id":"strat-1","title":"Title","tagline":"Hook","description":"Plan","categoryAdjustments":{"decor":-20000},"savingsTotal":20000,"tradeOffConsequence":"Impact","badge":"Priority Shield"}]`;
 
     const response = await aiClient.models.generateContent({
       model: modelName,
       contents: prompt,
-      config: {
-        responseMimeType: 'application/json',
-      },
+      config: { responseMimeType: 'application/json' },
     });
-
-    const text = response.text || '';
-    const parsed = JSON.parse(text) as TradeOffStrategy[];
-    if (Array.isArray(parsed) && parsed.length > 0) {
-      return { strategies: parsed, source: 'gemini' };
-    }
-    throw new Error('Invalid format received from Gemini');
+    const parsed = JSON.parse(response.text || '') as TradeOffStrategy[];
+    if (Array.isArray(parsed) && parsed.length > 0) return { strategies: parsed, source: 'gemini' };
+    throw new Error('Invalid format');
   } catch (error) {
     console.warn('[UtsavAI] Gemini Trade-Off API error, serving Smart Fallback:', error);
     return {
-      strategies: generateFallbackTradeOffs(
-        req.eventType,
-        req.totalBudget,
-        req.currentEstimatedCost,
-        req.guestCount,
-        req.priorities,
-        req.categories
-      ),
+      strategies: generateFallbackTradeOffs(req.eventType, req.totalBudget, req.currentEstimatedCost, req.guestCount, req.priorities, req.categories),
       source: 'smart_fallback',
     };
   }
 }
 
-/**
- * Parses unstructured messy vendor quotes into structured comparisons.
- */
 export async function parseVendorQuotes(
   req: Extract<AIRequest, { action: 'PARSE_VENDOR_QUOTES' }>
 ): Promise<{ comparisons: ParsedVendorQuote[]; source: 'gemini' | 'smart_fallback' }> {
-  if (!aiClient) {
-    return {
-      comparisons: generateFallbackVendorComparisons(req.category, req.guestCount, req.quotes),
-      source: 'smart_fallback',
-    };
-  }
+  if (!aiClient) return { comparisons: generateFallbackVendorComparisons(req.category, req.guestCount, req.quotes), source: 'smart_fallback' };
 
   try {
-    const prompt = `You are an expert vendor contract negotiator for UtsavAI.
-Category: ${req.category}
-Guest Count: ${req.guestCount}
-Analyze these raw quotes:
-${JSON.stringify(req.quotes)}
-
-Extract true costs, identify hidden fees (+18% GST extra, diesel generators, cleaning), pros, cons, and calculate priority fit (0-100).
-Return ONLY valid JSON array matching this schema:
-[
-  {
-    "id": "quote-id",
-    "vendorName": "Vendor Name",
-    "category": "${req.category}",
-    "baseCost": 150000,
-    "taxesAndFees": 27000,
-    "grandTotal": 177000,
-    "perPersonEquivalent": 885,
-    "includedPerks": ["Perk 1"],
-    "hiddenCharges": ["18% GST extra"],
-    "redFlags": ["Open ended electricity fee"],
-    "priorityFitScore": 85,
-    "pros": ["Pro 1"],
-    "cons": ["Con 1"],
-    "verdict": "Clear summary recommendation"
-  }
-]`;
+    const prompt = `Analyze quotes for ${req.category} (${req.guestCount} pax): ${JSON.stringify(req.quotes)}.
+Extract true costs, hidden fees (+18% GST extra, diesel, cleaning), pros, cons, priority fit (0-100). Return JSON array:
+[{"id":"quote-id","vendorName":"Vendor","category":"${req.category}","baseCost":150000,"taxesAndFees":27000,"grandTotal":177000,"perPersonEquivalent":885,"includedPerks":[],"hiddenCharges":[],"redFlags":[],"priorityFitScore":85,"pros":[],"cons":[],"verdict":"Recommendation"}]`;
 
     const response = await aiClient.models.generateContent({
       model: modelName,
       contents: prompt,
-      config: {
-        responseMimeType: 'application/json',
-      },
+      config: { responseMimeType: 'application/json' },
     });
-
     const parsed = JSON.parse(response.text || '') as ParsedVendorQuote[];
-    if (Array.isArray(parsed) && parsed.length > 0) {
-      return { comparisons: parsed, source: 'gemini' };
-    }
-    throw new Error('Invalid JSON format from Gemini');
+    if (Array.isArray(parsed) && parsed.length > 0) return { comparisons: parsed, source: 'gemini' };
+    throw new Error('Invalid JSON');
   } catch (error) {
     console.warn('[UtsavAI] Gemini Quote API error, serving Smart Fallback:', error);
-    return {
-      comparisons: generateFallbackVendorComparisons(req.category, req.guestCount, req.quotes),
-      source: 'smart_fallback',
-    };
+    return { comparisons: generateFallbackVendorComparisons(req.category, req.guestCount, req.quotes), source: 'smart_fallback' };
   }
 }
 
-/**
- * Generates cultural, multi-generational concepts and layouts.
- */
 export async function generateEventConcept(
   req: Extract<AIRequest, { action: 'GENERATE_CONCEPTS' }>
 ): Promise<{ concept: ConceptStudioResponse; source: 'gemini' | 'smart_fallback' }> {
   if (!aiClient) {
     return {
-      concept: generateFallbackConcept(
-        req.eventType,
-        req.guestCount,
-        req.totalBudget,
-        req.accessibilityNeeds,
-        req.priorities,
-        req.mustHaves,
-        req.refinePrompt
-      ),
+      concept: generateFallbackConcept(req.eventType, req.guestCount, req.totalBudget, req.accessibilityNeeds, req.priorities, req.mustHaves, req.refinePrompt),
       source: 'smart_fallback',
     };
   }
 
   try {
-    const prompt = `You are an expert celebratory concept designer for UtsavAI.
-Event Type: ${req.eventType}
-Guest Count: ${req.guestCount}
-Budget: ₹${req.totalBudget}
-Accessibility / Age Needs: ${req.accessibilityNeeds.join(', ')}
-Top Priorities: ${req.priorities.join(', ')}
-Must Haves: ${req.mustHaves.join(', ')}
-${req.refinePrompt ? `Refinement Instruction: "${req.refinePrompt}"` : ''}
-
-Generate an inclusive multi-generational theme and layout with dedicated zones (seniors, kids, main).
-Return ONLY valid JSON matching this schema:
-{
-  "themeName": "Creative Theme Name",
-  "tagline": "Theme tagline",
-  "culturalRationale": "Explanation of cultural and demographic balance",
-  "demographicZones": [
-    { "zoneName": "Senior Comfort Zone", "targetAudience": "Elders", "features": ["Feature 1", "Feature 2"] }
-  ],
-  "menuHighlights": [
-    { "category": "Live Counters", "items": ["Item 1"], "dietaryNotes": "Jain / Diabetic notes" }
-  ],
-  "costSavingIdea": "Actionable high-impact cost saving idea"
-}`;
+    const prompt = `Event: ${req.eventType} (${req.guestCount} pax, Budget: ₹${req.totalBudget}). Needs: ${req.accessibilityNeeds.join(', ')}. Priorities: ${req.priorities.join(', ')}. Musts: ${req.mustHaves.join(', ')}. ${req.refinePrompt ? `Refinement: "${req.refinePrompt}"` : ''}
+Return JSON: {"themeName":"","tagline":"","culturalRationale":"","demographicZones":[{"zoneName":"","targetAudience":"","features":[]}],"menuHighlights":[{"category":"","items":[],"dietaryNotes":""}],"costSavingIdea":""}`;
 
     const response = await aiClient.models.generateContent({
       model: modelName,
       contents: prompt,
-      config: {
-        responseMimeType: 'application/json',
-      },
+      config: { responseMimeType: 'application/json' },
     });
-
     const parsed = JSON.parse(response.text || '') as ConceptStudioResponse;
-    if (parsed.themeName && parsed.demographicZones) {
-      return { concept: parsed, source: 'gemini' };
-    }
-    throw new Error('Invalid concept schema from Gemini');
+    if (parsed.themeName && parsed.demographicZones) return { concept: parsed, source: 'gemini' };
+    throw new Error('Invalid concept');
   } catch (error) {
     console.warn('[UtsavAI] Gemini Concept API error, serving Smart Fallback:', error);
     return {
-      concept: generateFallbackConcept(
-        req.eventType,
-        req.guestCount,
-        req.totalBudget,
-        req.accessibilityNeeds,
-        req.priorities,
-        req.mustHaves,
-        req.refinePrompt
-      ),
+      concept: generateFallbackConcept(req.eventType, req.guestCount, req.totalBudget, req.accessibilityNeeds, req.priorities, req.mustHaves, req.refinePrompt),
+      source: 'smart_fallback',
+    };
+  }
+}
+
+export async function getChatReply(
+  req: Extract<AIRequest, { action: 'CHAT' }>
+): Promise<{ reply: string; source: 'gemini' | 'smart_fallback' }> {
+  if (!aiClient) {
+    return {
+      reply: `UtsavAI Event Advisor: Based on your question regarding "${req.message.slice(0, 40)}...", our consequence engine recommends protecting your #1 priority first. Adjust variable catering per-plate count or transition from plated service to live counters to save 15-20% immediately!`,
+      source: 'smart_fallback',
+    };
+  }
+
+  try {
+    const prompt = `You are Utsav Mitra, an elite Consequence-Aware Event Planning AI Architect.
+User context: ${req.contextSummary || 'General event planning'}
+User query: "${req.message}"
+Provide a concise (2-4 sentences), highly actionable, realistic recommendation emphasizing budget consequence, timeline buffer, and cultural/multi-generational sensitivity.`;
+
+    const response = await aiClient.models.generateContent({
+      model: modelName,
+      contents: prompt,
+    });
+    return { reply: response.text || 'Planning advice generated.', source: 'gemini' };
+  } catch (error) {
+    console.warn('[UtsavAI] Gemini Chat API error, serving fallback:', error);
+    return {
+      reply: `UtsavAI Advisor: To handle "${req.message.slice(0, 40)}...", remember that adding guests primarily scales catering costs, whereas venue and photography remain fixed. Use our What-If simulator to check exact ripple deltas!`,
       source: 'smart_fallback',
     };
   }

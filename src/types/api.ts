@@ -8,7 +8,11 @@ import { ParsedVendorQuote } from './vendor';
 import { TradeOffStrategy } from './planner';
 
 // Action types
-export type AIAction = 'TRADE_OFFS' | 'PARSE_VENDOR_QUOTES' | 'GENERATE_CONCEPTS';
+export type AIAction =
+  | 'TRADE_OFFS'
+  | 'PARSE_VENDOR_QUOTES'
+  | 'GENERATE_CONCEPTS'
+  | 'CHAT';
 
 // Zod Request Schemas
 export const TradeOffRequestSchema = z.object({
@@ -48,10 +52,17 @@ export const ConceptRequestSchema = z.object({
   refinePrompt: z.string().max(500).optional(),
 });
 
+export const ChatRequestSchema = z.object({
+  action: z.literal('CHAT'),
+  message: z.string().min(1).max(1000),
+  contextSummary: z.string().max(1000).optional(),
+});
+
 export const AIRequestSchema = z.discriminatedUnion('action', [
   TradeOffRequestSchema,
   VendorQuoteRequestSchema,
   ConceptRequestSchema,
+  ChatRequestSchema,
 ]);
 
 export type AIRequest = z.infer<typeof AIRequestSchema>;
@@ -77,4 +88,5 @@ export type AIResponse =
   | { success: true; action: 'TRADE_OFFS'; strategies: TradeOffStrategy[]; source: 'gemini' | 'smart_fallback' }
   | { success: true; action: 'PARSE_VENDOR_QUOTES'; comparisons: ParsedVendorQuote[]; source: 'gemini' | 'smart_fallback' }
   | { success: true; action: 'GENERATE_CONCEPTS'; concept: ConceptStudioResponse; source: 'gemini' | 'smart_fallback' }
+  | { success: true; action: 'CHAT'; reply: string; source: 'gemini' | 'smart_fallback' }
   | { success: false; error: string };

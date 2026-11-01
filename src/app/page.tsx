@@ -1,248 +1,71 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Navbar } from '@/components/common/Navbar';
-import { PresetSelector } from '@/components/common/PresetSelector';
-import { DashboardTabs, DashboardTabId } from '@/components/common/DashboardTabs';
-import { ContextWizard } from '@/components/wizard/ContextWizard';
-import { WhatIfSimulator } from '@/components/budget/WhatIfSimulator';
-import { ConsequenceBanner } from '@/components/budget/ConsequenceBanner';
-import { BudgetDashboard } from '@/components/budget/BudgetDashboard';
-import { TradeOffCards } from '@/components/budget/TradeOffCards';
-import { TimelineTracker } from '@/components/timeline/TimelineTracker';
-import { CalendarExport } from '@/components/timeline/CalendarExport';
-import { VendorComparator } from '@/components/vendors/VendorComparator';
-import { VendorChecklist } from '@/components/vendors/VendorChecklist';
-import { ConceptStudio } from '@/components/concept/ConceptStudio';
-import { PRESET_WEDDING, PersonaPreset } from '@/engine/demoPresets';
-import {
-  allocateBudgetByPriority,
-  calculateGuestSurgeRipple,
-  recalculateTimelineDAG,
-  applyTradeOffStrategy,
-} from '@/engine/plannerEngine';
-import {
-  EventContext,
-  CategoryBudget,
-  PriorityCategory,
-  ConsequenceDiff,
-  TradeOffStrategy,
-} from '@/types/planner';
-import { EventTask, TaskStatus } from '@/types/timeline';
+import React from 'react';
+import Link from 'next/link';
+import { HomeNavbar } from '@/components/common/HomeNavbar';
+import { HeroSection } from '@/components/home/HeroSection';
+import { InteractiveCardsPreview } from '@/components/home/InteractiveCardsPreview';
+import { FeaturesGrid } from '@/components/home/FeaturesGrid';
+import { Footer } from '@/components/common/Footer';
+import { FloatingChatbot } from '@/components/common/FloatingChatbot';
+import { Sparkles, ArrowRight, ShieldAlert, CheckCircle2 } from 'lucide-react';
 
-export default function HomePage() {
-  const [activePreset, setActivePreset] = useState<PersonaPreset>(PRESET_WEDDING);
-  const [context, setContext] = useState<EventContext>(PRESET_WEDDING.context);
-  const [categories, setCategories] = useState<CategoryBudget[]>(() =>
-    allocateBudgetByPriority(PRESET_WEDDING.context.totalBudget, PRESET_WEDDING.context.priorities, PRESET_WEDDING.context.eventType)
-  );
-  const [tasks, setTasks] = useState<EventTask[]>(PRESET_WEDDING.tasks);
-  const [dateShiftDays, setDateShiftDays] = useState<number>(0);
-  const [consequence, setConsequence] = useState<ConsequenceDiff>({
-    guestDelta: 0,
-    budgetDelta: 0,
-    daysDelta: 0,
-    cateringDiff: 0,
-    venueDiff: 0,
-    totalEstimatedCost: PRESET_WEDDING.context.totalBudget,
-    netDifference: 0,
-    overBudgetAmount: 0,
-    isOverBudget: false,
-    summaryText: 'Baseline initial plan loaded.',
-    priorityImpactDescription: 'Budget is fully balanced across categories.',
-  });
-
-  const [tradeOffStrategies, setTradeOffStrategies] = useState<TradeOffStrategy[]>([]);
-  const [tradeOffSource, setTradeOffSource] = useState<'gemini' | 'smart_fallback'>('smart_fallback');
-  const [isLoadingTradeOffs, setIsLoadingTradeOffs] = useState<boolean>(false);
-  const [isPresetModalOpen, setIsPresetModalOpen] = useState<boolean>(false);
-  const [isHighContrast, setIsHighContrast] = useState<boolean>(false);
-  const [activeTab, setActiveTab] = useState<DashboardTabId>('budget');
-
-  const handleSelectPreset = (preset: PersonaPreset) => {
-    setActivePreset(preset);
-    setContext(preset.context);
-    setTasks(preset.tasks);
-    setDateShiftDays(0);
-    setTradeOffStrategies([]);
-    setCategories(allocateBudgetByPriority(preset.context.totalBudget, preset.context.priorities, preset.context.eventType));
-    setConsequence({
-      guestDelta: 0,
-      budgetDelta: 0,
-      daysDelta: 0,
-      cateringDiff: 0,
-      venueDiff: 0,
-      totalEstimatedCost: preset.context.totalBudget,
-      netDifference: 0,
-      overBudgetAmount: 0,
-      isOverBudget: false,
-      summaryText: `${preset.badge} loaded.`,
-      priorityImpactDescription: `Protecting top priority: ${preset.context.priorities[0]?.toUpperCase()}.`,
-    });
-  };
-
-  const handleGuestChange = (newGuests: number) => {
-    const updatedCtx = { ...context, guestCount: newGuests };
-    setContext(updatedCtx);
-    const { updatedCategories, consequence: diff } = calculateGuestSurgeRipple(updatedCtx, categories, newGuests);
-    setCategories(updatedCategories);
-    setConsequence(diff);
-  };
-
-  const handleBudgetChange = (newBudget: number) => {
-    const updatedCtx = { ...context, totalBudget: newBudget };
-    setContext(updatedCtx);
-    const totalCost = categories.reduce((s, c) => s + c.allocatedAmount, 0);
-    const net = totalCost - newBudget;
-    setConsequence((prev) => ({
-      ...prev,
-      netDifference: net,
-      overBudgetAmount: Math.max(0, net),
-      isOverBudget: net > 0,
-      summaryText: `Budget adjusted to ₹${newBudget.toLocaleString('en-IN')}.`,
-    }));
-  };
-
-  const handleTaskStatusChange = (taskId: string, newStatus: TaskStatus, delayDays: number = 0) => {
-    const result = recalculateTimelineDAG(tasks, taskId, newStatus, delayDays);
-    setTasks(result.tasks);
-  };
-
-  const handleToggleItemStatus = (cat: PriorityCategory, itemId: string) => {
-    setCategories((prev) =>
-      prev.map((c) =>
-        c.category === cat
-          ? {
-              ...c,
-              items: c.items.map((it) =>
-                it.id === itemId
-                  ? { ...it, status: it.status === 'unverified_ai' ? 'confirmed_quote' : 'unverified_ai' }
-                  : it
-              ),
-            }
-          : c
-      )
-    );
-  };
-
-  const handleRequestTradeOffs = async () => {
-    setIsLoadingTradeOffs(true);
-    try {
-      const catMap: Record<string, number> = {};
-      categories.forEach((c) => { catMap[c.category] = c.allocatedAmount; });
-      const res = await fetch('/api/ai', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'TRADE_OFFS',
-          eventType: context.eventType,
-          totalBudget: context.totalBudget,
-          currentEstimatedCost: consequence.totalEstimatedCost,
-          guestCount: context.guestCount,
-          priorities: context.priorities,
-          categories: catMap,
-        }),
-      });
-      const data = await res.json();
-      if (data.success && data.strategies) {
-        setTradeOffStrategies(data.strategies);
-        setTradeOffSource(data.source);
-      }
-    } catch (err) {
-      console.error('Failed to load trade-offs:', err);
-    } finally {
-      setIsLoadingTradeOffs(false);
-    }
-  };
-
-  const handleApplyStrategy = (strat: TradeOffStrategy) => {
-    const updated = applyTradeOffStrategy(categories, strat);
-    setCategories(updated);
-    const newTotal = updated.reduce((s, c) => s + c.allocatedAmount, 0);
-    const diff = newTotal - context.totalBudget;
-    setConsequence((prev) => ({
-      ...prev,
-      totalEstimatedCost: newTotal,
-      netDifference: diff,
-      overBudgetAmount: Math.max(0, diff),
-      isOverBudget: diff > 0,
-      summaryText: `Applied "${strat.title}". Saved ₹${strat.savingsTotal.toLocaleString('en-IN')}.`,
-      priorityImpactDescription: strat.tradeOffConsequence,
-    }));
-    setTradeOffStrategies([]);
-  };
-
+export default function LandingPage() {
   return (
-    <div className={`min-h-screen ${isHighContrast ? 'high-contrast' : ''}`}>
-      <Navbar
-        currentPersonaTitle={activePreset.badge}
-        isHighContrast={isHighContrast}
-        onToggleHighContrast={() => setIsHighContrast(!isHighContrast)}
-        onOpenPresetModal={() => setIsPresetModalOpen(true)}
-      />
-      <PresetSelector
-        isOpen={isPresetModalOpen}
-        activePresetId={activePreset.id}
-        onSelectPreset={handleSelectPreset}
-        onClose={() => setIsPresetModalOpen(false)}
-      />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-        <ContextWizard context={context} onUpdateContext={setContext} />
-        <WhatIfSimulator
-          originalGuests={context.originalGuestCount}
-          currentGuests={context.guestCount}
-          originalBudget={context.originalBudget}
-          currentBudget={context.totalBudget}
-          dateShiftDays={dateShiftDays}
-          onUpdateGuests={handleGuestChange}
-          onUpdateBudget={handleBudgetChange}
-          onUpdateDateShift={setDateShiftDays}
-          onSimulateOverrun={() => {
-            handleGuestChange(context.guestCount + 50);
-            setTimeout(handleRequestTradeOffs, 100);
-          }}
-          onReset={() => handleSelectPreset(activePreset)}
-        />
-        <ConsequenceBanner
-          consequence={consequence}
-          onRequestTradeOffs={handleRequestTradeOffs}
-          isLoadingTradeOffs={isLoadingTradeOffs}
-        />
-        {tradeOffStrategies.length > 0 && (
-          <TradeOffCards
-            strategies={tradeOffStrategies}
-            source={tradeOffSource}
-            onApplyStrategy={handleApplyStrategy}
-            onDismiss={() => setTradeOffStrategies([])}
-          />
-        )}
-        <DashboardTabs activeTab={activeTab} onTabChange={setActiveTab} />
-        {activeTab === 'budget' && (
-          <BudgetDashboard
-            categories={categories}
-            totalBudget={context.totalBudget}
-            topPriority={context.priorities[0] || 'catering'}
-            onToggleItemStatus={handleToggleItemStatus}
-          />
-        )}
-        {activeTab === 'timeline' && (
-          <div className="space-y-6">
-            <TimelineTracker tasks={tasks} onUpdateTaskStatus={handleTaskStatusChange} />
-            <CalendarExport eventName={context.title} tasks={tasks} eventDate={context.eventDate} />
+    <div className="min-h-screen ambient-glow-bg flex flex-col justify-between text-white selection:bg-purple-500 selection:text-white">
+      {/* Floating Pill Navbar matching reference image */}
+      <HomeNavbar />
+
+      <main className="flex-1 w-full">
+        {/* Hero Section */}
+        <HeroSection />
+
+        {/* Dual Glowing Interactive Cards directly mimicking uploaded design */}
+        <InteractiveCardsPreview />
+
+        {/* 4 Architectural Features Grid */}
+        <FeaturesGrid />
+
+        {/* Bottom Callout Banner */}
+        <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          <div className="rounded-3xl p-8 sm:p-12 bg-gradient-to-r from-purple-900/40 via-black to-amber-900/40 border border-white/15 text-center relative overflow-hidden backdrop-blur-xl shadow-2xl">
+            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-white/10 text-amber-300 text-xs font-semibold mb-4">
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>PromptWars Challenge 5 Rank #1 Edition</span>
+            </div>
+
+            <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
+              Ready to execute stress-free celebrations?
+            </h2>
+            <p className="max-w-xl mx-auto text-xs sm:text-sm text-slate-300 mt-3 leading-relaxed">
+              Experience the power of consequence-aware ripple recalculations, priority budget shielding, and Gemini 2.5 Flash intelligence.
+            </p>
+
+            <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Link
+                href="/onboard"
+                className="px-8 py-3.5 rounded-full text-xs sm:text-sm font-bold text-white btn-glow-purple flex items-center space-x-2 shadow-2xl"
+              >
+                <span>Take 2-Min Discovery Quiz</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+
+              <Link
+                href="/dashboard"
+                className="px-7 py-3.5 rounded-full text-xs sm:text-sm font-bold text-slate-950 btn-glow-amber flex items-center space-x-2 shadow-2xl"
+              >
+                <span>Direct Dashboard Access</span>
+              </Link>
+            </div>
           </div>
-        )}
-        {activeTab === 'vendors' && (
-          <div className="space-y-6">
-            <VendorComparator
-              category={context.priorities[0] || 'catering'}
-              guestCount={context.guestCount}
-              sampleQuotes={activePreset.sampleVendorQuotes}
-            />
-            <VendorChecklist />
-          </div>
-        )}
-        {activeTab === 'concept' && <ConceptStudio context={context} />}
+        </section>
       </main>
+
+      {/* Modern Dark Footer */}
+      <Footer />
+
+      {/* Persistent AI Copilot Floating Chatbot */}
+      <FloatingChatbot />
     </div>
   );
 }
