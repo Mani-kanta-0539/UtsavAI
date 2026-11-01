@@ -45,13 +45,13 @@ export const VendorChecklist: React.FC = () => {
   const [expandedCat, setExpandedCat] = useState<PriorityCategory | null>('catering');
 
   return (
-    <section aria-labelledby="checklist-heading" className="glass-panel rounded-2xl border border-white/10 p-6 shadow-2xl text-white">
-      <div className="pb-4 border-b border-white/10">
-        <h2 id="checklist-heading" className="text-base font-bold text-white flex items-center gap-2">
-          <CheckSquare className="w-5 h-5 text-amber-400" />
+    <section aria-labelledby="checklist-heading" className="glass-panel rounded-2xl border border-amber-500/20 dark:border-white/10 p-6 shadow-xl text-slate-900 dark:text-white">
+      <div className="pb-4 border-b border-amber-500/15 dark:border-white/10">
+        <h2 id="checklist-heading" className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+          <CheckSquare className="w-5 h-5 text-amber-500 dark:text-amber-400" />
           Vendor Negotiation Checklist & Critical Questions
         </h2>
-        <p className="text-xs text-slate-400">
+        <p className="text-xs text-slate-600 dark:text-slate-400">
           Essential questions to ask each vendor category before signing contracts to protect your budget from surprise fees.
         </p>
       </div>
@@ -62,29 +62,29 @@ export const VendorChecklist: React.FC = () => {
           const questions = QUESTIONS_DATABASE[cat] || [];
 
           return (
-            <div key={cat} className="border border-white/10 rounded-xl overflow-hidden bg-black/40">
+            <div key={cat} className="border border-amber-500/20 dark:border-white/10 rounded-xl overflow-hidden bg-white dark:bg-black/40 shadow-xs">
               <button
                 type="button"
                 onClick={() => setExpandedCat(isExpanded ? null : cat)}
-                className="w-full flex items-center justify-between p-3.5 bg-white/[0.02] hover:bg-white/[0.05] transition-colors text-left"
+                className="w-full flex items-center justify-between p-3.5 bg-slate-50 dark:bg-white/[0.02] hover:bg-slate-100 dark:hover:bg-white/[0.05] transition-colors text-left"
                 aria-expanded={isExpanded}
               >
-                <span className="font-bold text-xs text-slate-200 flex items-center gap-2">
-                  <HelpCircle className="w-3.5 h-3.5 text-amber-400" />
+                <span className="font-bold text-xs text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                  <HelpCircle className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400" />
                   {CATEGORY_LABELS[cat]} ({questions.length} Essential Questions)
                 </span>
                 {isExpanded ? (
-                  <ChevronUp className="w-4 h-4 text-slate-400" />
+                  <ChevronUp className="w-4 h-4 text-slate-500 dark:text-slate-400" />
                 ) : (
-                  <ChevronDown className="w-4 h-4 text-slate-400" />
+                  <ChevronDown className="w-4 h-4 text-slate-500 dark:text-slate-400" />
                 )}
               </button>
 
               {isExpanded && (
-                <div className="p-4 bg-black/60 space-y-2 border-t border-white/10">
+                <div className="p-4 bg-slate-50/70 dark:bg-black/60 space-y-2 border-t border-amber-500/15 dark:border-white/10">
                   {questions.map((q, idx) => (
-                    <div key={idx} className="flex items-start space-x-2 text-xs text-slate-300">
-                      <span className="font-bold text-amber-400 shrink-0">Q{idx + 1}.</span>
+                    <div key={idx} className="flex items-start space-x-2 text-xs text-slate-700 dark:text-slate-300">
+                      <span className="font-bold text-amber-700 dark:text-amber-400 shrink-0">Q{idx + 1}.</span>
                       <span>{q}</span>
                     </div>
                   ))}

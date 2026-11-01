@@ -40,12 +40,12 @@ export const CalendarExport: React.FC<CalendarExportProps> = ({
   );
 
   return (
-    <div className="bg-black/50 border border-white/10 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3 text-white">
+    <div className="bg-white/80 dark:bg-black/50 border border-amber-500/20 dark:border-white/10 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3 text-slate-900 dark:text-white shadow-xs">
       <div>
-        <h3 className="text-xs font-bold text-white">
+        <h3 className="text-xs font-bold text-slate-900 dark:text-white">
           Sync & Export Event Schedule
         </h3>
-        <p className="text-[11px] text-slate-400">
+        <p className="text-[11px] text-slate-500 dark:text-slate-400">
           Compatible with Google Calendar, Apple iCal, Outlook, and printable run-sheets.
         </p>
       </div>
@@ -53,9 +53,9 @@ export const CalendarExport: React.FC<CalendarExportProps> = ({
       <div className="flex items-center space-x-2">
         <button
           onClick={handleDownloadICS}
-          className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/15 text-xs font-semibold text-slate-200 flex items-center space-x-1.5 transition-colors"
+          className="px-3 py-1.5 rounded-xl bg-white dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 border border-amber-500/20 dark:border-white/15 text-xs font-semibold text-slate-700 dark:text-slate-200 flex items-center space-x-1.5 transition-colors shadow-xs"
         >
-          <Download className="w-3.5 h-3.5 text-slate-400" />
+          <Download className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
           <span>Export .ics</span>
         </button>
 
@@ -63,17 +63,17 @@ export const CalendarExport: React.FC<CalendarExportProps> = ({
           href={mainEventGcal}
           target="_blank"
           rel="noopener noreferrer"
-          className="px-3.5 py-1.5 rounded-xl bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/40 text-xs font-semibold text-blue-300 flex items-center space-x-1.5 transition-colors"
+          className="px-3.5 py-1.5 rounded-xl bg-blue-500/15 dark:bg-blue-500/20 hover:bg-blue-500/25 border border-blue-500/30 dark:border-blue-500/40 text-xs font-semibold text-blue-800 dark:text-blue-300 flex items-center space-x-1.5 transition-colors shadow-xs"
         >
-          <Calendar className="w-3.5 h-3.5 text-blue-400" />
+          <Calendar className="w-3.5 h-3.5 text-blue-500 dark:text-blue-400" />
           <span>Google Calendar</span>
         </a>
 
         <button
           onClick={handlePrint}
-          className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/15 text-xs font-semibold text-slate-200 flex items-center space-x-1.5 transition-colors"
+          className="px-3 py-1.5 rounded-xl bg-white dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 border border-amber-500/20 dark:border-white/15 text-xs font-semibold text-slate-700 dark:text-slate-200 flex items-center space-x-1.5 transition-colors shadow-xs"
         >
-          <Printer className="w-3.5 h-3.5 text-slate-400" />
+          <Printer className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
           <span>Print Sheet</span>
         </button>
       </div>

@@ -22,34 +22,34 @@ export const BudgetDashboard: React.FC<BudgetDashboardProps> = ({
   const isOver = currentTotal > totalBudget;
 
   return (
-    <section aria-labelledby="budget-summary-heading" className="glass-panel rounded-2xl border border-white/10 p-6 shadow-2xl text-white">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-white/10 gap-2">
+    <section aria-labelledby="budget-summary-heading" className="glass-panel rounded-2xl border border-amber-500/20 dark:border-white/10 p-6 shadow-xl text-slate-900 dark:text-white">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-amber-500/15 dark:border-white/10 gap-2">
         <div>
-          <h2 id="budget-summary-heading" className="text-base font-bold text-white">
+          <h2 id="budget-summary-heading" className="text-base font-bold text-slate-900 dark:text-white">
             Priority-Weighted Budget Allocation
           </h2>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-slate-600 dark:text-slate-400">
             Transparent breakdown badging estimated vs verified vendor quotes.
           </p>
         </div>
         <div className="text-right">
-          <div className="text-sm font-semibold text-slate-300">
+          <div className="text-sm font-semibold text-slate-700 dark:text-slate-300">
             Total Allocated:{' '}
-            <span className={`text-base font-extrabold ${isOver ? 'text-rose-400' : 'text-amber-400'}`}>
+            <span className={`text-base font-extrabold ${isOver ? 'text-rose-600 dark:text-rose-400' : 'text-amber-600 dark:text-amber-400'}`}>
               ₹{currentTotal.toLocaleString('en-IN')}
             </span>{' '}
             / ₹{totalBudget.toLocaleString('en-IN')}
           </div>
-          <div className="text-xs text-slate-400">
+          <div className="text-xs text-slate-500 dark:text-slate-400">
             Capacity:{' '}
-            <span className={`font-bold ${isOver ? 'text-rose-400' : 'text-emerald-400'}`}>
+            <span className={`font-bold ${isOver ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
               {percentUsed}%
             </span>
           </div>
         </div>
       </div>
 
-      <div className="w-full bg-white/10 h-2.5 rounded-full mt-4 overflow-hidden" role="progressbar" aria-valuenow={percentUsed} aria-valuemin={0} aria-valuemax={100}>
+      <div className="w-full bg-slate-200 dark:bg-white/10 h-2.5 rounded-full mt-4 overflow-hidden" role="progressbar" aria-valuenow={percentUsed} aria-valuemin={0} aria-valuemax={100}>
         <div
           className={`h-full transition-all duration-300 ${
             percentUsed > 100
@@ -70,20 +70,20 @@ export const BudgetDashboard: React.FC<BudgetDashboardProps> = ({
               key={cat.category}
               className={`rounded-xl p-4 border transition-all ${
                 isTopPriority
-                  ? 'border-amber-400/50 bg-amber-500/10 ring-1 ring-amber-400/30'
-                  : 'border-white/10 bg-white/[0.03]'
+                  ? 'border-amber-500/40 dark:border-amber-400/50 bg-amber-500/10 ring-1 ring-amber-500/30'
+                  : 'border-amber-500/15 dark:border-white/10 bg-white/60 dark:bg-white/[0.03]'
               }`}
             >
               <div className="flex items-center justify-between">
-                <span className="font-bold text-xs text-white flex items-center gap-1">
+                <span className="font-bold text-xs text-slate-900 dark:text-white flex items-center gap-1">
                   {cat.label}
                   {isTopPriority && (
-                    <span className="text-[10px] text-amber-300 bg-amber-400/20 px-1.5 py-0.2 rounded font-bold border border-amber-400/30">
+                    <span className="text-[10px] text-amber-800 dark:text-amber-300 bg-amber-500/20 px-1.5 py-0.2 rounded font-bold border border-amber-500/30">
                       #1 Priority
                     </span>
                   )}
                 </span>
-                <span className="text-xs font-bold text-amber-300">
+                <span className="text-xs font-bold text-amber-700 dark:text-amber-300">
                   ₹{cat.allocatedAmount.toLocaleString('en-IN')}
                 </span>
               </div>
@@ -94,17 +94,17 @@ export const BudgetDashboard: React.FC<BudgetDashboardProps> = ({
                   return (
                     <div
                       key={item.id}
-                      className="text-xs bg-black/50 p-2.5 rounded-xl border border-white/10 flex items-center justify-between"
+                      className="text-xs bg-white dark:bg-black/50 p-2.5 rounded-xl border border-amber-500/15 dark:border-white/10 flex items-center justify-between shadow-xs"
                     >
                       <div className="truncate pr-2">
-                        <div className="font-medium text-slate-200 truncate">{item.name}</div>
-                        <div className="text-[10px] text-slate-400">
+                        <div className="font-medium text-slate-800 dark:text-slate-200 truncate">{item.name}</div>
+                        <div className="text-[10px] text-slate-500 dark:text-slate-400">
                           {item.isFixedCost ? 'Fixed Cost' : 'Scales per Guest'}
                         </div>
                       </div>
 
                       <div className="flex flex-col items-end shrink-0">
-                        <span className="font-bold text-white text-xs">
+                        <span className="font-bold text-slate-900 dark:text-white text-xs">
                           ₹{item.estimatedCost.toLocaleString('en-IN')}
                         </span>
                         <button
@@ -113,18 +113,18 @@ export const BudgetDashboard: React.FC<BudgetDashboardProps> = ({
                           aria-label={`Toggle verification status for ${item.name}`}
                           className={`mt-1 text-[9px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1 transition-colors ${
                             isVerified
-                              ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
-                              : 'bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500/30'
+                              ? 'bg-emerald-500/15 dark:bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 border border-emerald-500/30 dark:border-emerald-500/40'
+                              : 'bg-amber-500/15 dark:bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/30 dark:border-amber-500/40 hover:bg-amber-500/25'
                           }`}
                         >
                           {isVerified ? (
                             <>
-                              <CheckCircle2 className="w-2.5 h-2.5 text-emerald-400" />
+                              <CheckCircle2 className="w-2.5 h-2.5 text-emerald-600 dark:text-emerald-400" />
                               Confirmed Quote
                             </>
                           ) : (
                             <>
-                              <ShieldAlert className="w-2.5 h-2.5 text-amber-400" />
+                              <ShieldAlert className="w-2.5 h-2.5 text-amber-600 dark:text-amber-400" />
                               AI Estimate - Unverified
                             </>
                           )}

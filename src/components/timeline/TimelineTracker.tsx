@@ -18,21 +18,21 @@ export const TimelineTracker: React.FC<TimelineTrackerProps> = ({
   const hasDelays = delayedTasks.length > 0;
 
   return (
-    <section aria-labelledby="timeline-heading" className="glass-panel rounded-2xl border border-white/10 p-6 shadow-2xl text-white">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-white/10 gap-2">
+    <section aria-labelledby="timeline-heading" className="glass-panel rounded-2xl border border-amber-500/20 dark:border-white/10 p-6 shadow-xl text-slate-900 dark:text-white">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-amber-500/15 dark:border-white/10 gap-2">
         <div>
-          <h2 id="timeline-heading" className="text-base font-bold text-white flex items-center gap-2">
-            <Clock className="w-5 h-5 text-amber-400" />
+          <h2 id="timeline-heading" className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <Clock className="w-5 h-5 text-amber-500 dark:text-amber-400" />
             Dependency-Aware Timeline & Critical Path
           </h2>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-slate-600 dark:text-slate-400">
             Topological DAG tracking: Marking a prerequisite task as &quot;Delayed&quot; automatically ripples through downstream dependencies.
           </p>
         </div>
 
         {hasDelays && (
-          <div className="flex items-center space-x-1.5 px-3 py-1 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-semibold">
-            <ShieldAlert className="w-4 h-4 text-amber-400" />
+          <div className="flex items-center space-x-1.5 px-3 py-1 rounded-xl bg-amber-500/15 dark:bg-amber-500/20 border border-amber-500/30 dark:border-amber-500/40 text-amber-800 dark:text-amber-300 text-xs font-semibold">
+            <ShieldAlert className="w-4 h-4 text-amber-600 dark:text-amber-400" />
             <span>{delayedTasks.length} Milestones in Delay Ripple</span>
           </div>
         )}
@@ -50,10 +50,10 @@ export const TimelineTracker: React.FC<TimelineTrackerProps> = ({
               key={task.id}
               className={`p-4 rounded-xl border transition-all ${
                 isDelayed
-                  ? 'border-amber-400/60 bg-amber-500/10 ring-1 ring-amber-400/40'
+                  ? 'border-amber-500/50 dark:border-amber-400/60 bg-amber-500/10 ring-1 ring-amber-500/30 dark:ring-amber-400/40'
                   : isCompleted
-                  ? 'border-emerald-500/30 bg-emerald-500/5'
-                  : 'border-white/10 bg-white/[0.03]'
+                  ? 'border-emerald-500/30 bg-emerald-500/10 dark:bg-emerald-500/5'
+                  : 'border-amber-500/15 dark:border-white/10 bg-white/60 dark:bg-white/[0.03]'
               }`}
             >
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
@@ -61,10 +61,10 @@ export const TimelineTracker: React.FC<TimelineTrackerProps> = ({
                   <div
                     className={`mt-1 p-1.5 rounded-lg shrink-0 ${
                       isCompleted
-                        ? 'bg-emerald-500 text-slate-950 font-bold'
+                        ? 'bg-emerald-600 dark:bg-emerald-500 text-white dark:text-slate-950 font-bold'
                         : isDelayed
                         ? 'bg-amber-500 text-slate-950 font-bold'
-                        : 'bg-white/10 text-slate-300'
+                        : 'bg-black/5 dark:bg-white/10 text-slate-700 dark:text-slate-300'
                     }`}
                   >
                     {isCompleted ? (
@@ -78,25 +78,25 @@ export const TimelineTracker: React.FC<TimelineTrackerProps> = ({
 
                   <div>
                     <div className="flex items-center space-x-2 flex-wrap gap-y-1">
-                      <span className={`font-bold text-sm ${isCompleted ? 'line-through text-slate-500' : 'text-white'}`}>
+                      <span className={`font-bold text-sm ${isCompleted ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-900 dark:text-white'}`}>
                         {task.title}
                       </span>
                       {task.isCriticalPath && (
-                        <span className="text-[10px] uppercase font-bold px-1.5 py-0.2 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                        <span className="text-[10px] uppercase font-bold px-1.5 py-0.2 rounded bg-rose-500/15 dark:bg-rose-500/20 text-rose-800 dark:text-rose-300 border border-rose-500/30">
                           Critical Path
                         </span>
                       )}
-                      <span className="text-xs text-slate-400 flex items-center gap-1">
+                      <span className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1">
                         <Calendar className="w-3 h-3 text-slate-400" />
                         Due: {task.dueDate}
                       </span>
                     </div>
 
-                    <p className="text-xs text-slate-300 mt-1">{task.description}</p>
+                    <p className="text-xs text-slate-700 dark:text-slate-300 mt-1">{task.description}</p>
 
                     {hasMitigation && (
-                      <div className="mt-2 text-xs bg-amber-500/15 border border-amber-500/30 text-amber-200 p-2 rounded-lg flex items-center space-x-2">
-                        <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
+                      <div className="mt-2 text-xs bg-amber-500/15 border border-amber-500/30 text-amber-900 dark:text-amber-200 p-2 rounded-lg flex items-center space-x-2">
+                        <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
                         <span>{task.mitigationNote}</span>
                       </div>
                     )}
@@ -113,16 +113,16 @@ export const TimelineTracker: React.FC<TimelineTrackerProps> = ({
                     aria-label={`Status for ${task.title}`}
                     className={`text-xs font-semibold px-2.5 py-1.5 rounded-lg border focus:ring-2 focus:ring-amber-500 ${
                       isCompleted
-                        ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                        ? 'bg-emerald-500/15 dark:bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 border-emerald-500/30 dark:border-emerald-500/40'
                         : isDelayed
-                        ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
-                        : 'bg-black/60 text-slate-200 border-white/15'
+                        ? 'bg-amber-500/15 dark:bg-amber-500/20 text-amber-900 dark:text-amber-300 border-amber-500/30 dark:border-amber-500/40'
+                        : 'bg-white dark:bg-black/60 text-slate-800 dark:text-slate-200 border-amber-500/20 dark:border-white/15'
                     }`}
                   >
-                    <option value="pending" className="bg-[#12101e] text-white">Pending</option>
-                    <option value="in_progress" className="bg-[#12101e] text-white">In Progress</option>
-                    <option value="completed" className="bg-[#12101e] text-white">Completed</option>
-                    <option value="delayed" className="bg-[#12101e] text-white">Delayed (+7d Ripple)</option>
+                    <option value="pending" className="bg-white dark:bg-[#12101e] text-slate-900 dark:text-white">Pending</option>
+                    <option value="in_progress" className="bg-white dark:bg-[#12101e] text-slate-900 dark:text-white">In Progress</option>
+                    <option value="completed" className="bg-white dark:bg-[#12101e] text-slate-900 dark:text-white">Completed</option>
+                    <option value="delayed" className="bg-white dark:bg-[#12101e] text-slate-900 dark:text-white">Delayed (+7d Ripple)</option>
                   </select>
 
                   <a
@@ -130,7 +130,7 @@ export const TimelineTracker: React.FC<TimelineTrackerProps> = ({
                     target="_blank"
                     rel="noopener noreferrer"
                     title="Add milestone to Google Calendar"
-                    className="p-1.5 rounded-lg border border-white/15 hover:bg-white/10 text-slate-300 transition-colors"
+                    className="p-1.5 rounded-lg border border-amber-500/20 dark:border-white/15 hover:bg-black/5 dark:hover:bg-white/10 text-slate-600 dark:text-slate-300 transition-colors"
                     aria-label={`Add ${task.title} to Google Calendar`}
                   >
                     <ExternalLink className="w-4 h-4" />

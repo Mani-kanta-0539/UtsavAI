@@ -30,7 +30,7 @@ export const DashboardTabs: React.FC<DashboardTabsProps> = ({
   return (
     <nav
       aria-label="Feature Tabs"
-      className="border-b border-white/10 flex space-x-2 overflow-x-auto pt-2"
+      className="border-b border-amber-500/20 dark:border-white/10 flex space-x-2 overflow-x-auto pt-2"
     >
       {TABS.map((tab) => {
         const Icon = tab.icon;
@@ -41,8 +41,8 @@ export const DashboardTabs: React.FC<DashboardTabsProps> = ({
             onClick={() => onTabChange(tab.id)}
             className={`py-3 px-4 border-b-2 font-bold text-xs flex items-center space-x-2 transition-all whitespace-nowrap rounded-t-xl ${
               isActive
-                ? 'border-amber-400 text-amber-300 bg-amber-400/10 shadow-sm'
-                : 'border-transparent text-slate-400 hover:text-white hover:bg-white/[0.03]'
+                ? 'border-amber-500 dark:border-amber-400 text-amber-900 dark:text-amber-300 bg-amber-500/15 dark:bg-amber-400/10 shadow-xs'
+                : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-black/5 dark:text-slate-400 dark:hover:text-white dark:hover:bg-white/[0.03]'
             }`}
             aria-current={isActive ? 'page' : undefined}
           >
